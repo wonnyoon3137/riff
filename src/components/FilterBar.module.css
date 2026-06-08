@@ -1,0 +1,267 @@
+/* FilterBar — sticky filter area below AppBar */
+.filterBar {
+  position: sticky;
+  top: 64px;
+  z-index: 90;
+  background-color: var(--md-surface);
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 56px;
+  overflow-x: auto;
+}
+
+/* Desktop: show full filter bar */
+.desktopFilters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Filter section separator */
+.separator {
+  width: 1px;
+  height: 24px;
+  background-color: var(--md-outline-variant);
+  flex-shrink: 0;
+}
+
+/* Reset button */
+.resetButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--md-radius-pill);
+  background: transparent;
+  color: var(--md-primary);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.resetButton:hover {
+  background-color: var(--md-surface-container);
+}
+
+.resetButton:disabled {
+  color: var(--md-on-surface-variant);
+  opacity: 0.38;
+  cursor: default;
+}
+
+.resetButton:disabled:hover {
+  background: transparent;
+}
+
+/* Mobile: chip summary row with filter button */
+.mobileRow {
+  display: none;
+}
+
+.filterTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-radius-pill);
+  background: transparent;
+  color: var(--md-on-surface);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filterTrigger:hover {
+  background-color: var(--md-surface-container);
+}
+
+.filterBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background-color: var(--md-primary);
+  color: var(--md-on-primary);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+.tuneIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Mobile chip summary */
+.chipSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chipSummary::-webkit-scrollbar {
+  display: none;
+}
+
+.summaryChip {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--md-radius-pill);
+  background-color: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Mobile modal overlay for filters */
+.mobileOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: rgba(0, 0, 0, 0.32);
+  display: flex;
+  align-items: flex-end;
+}
+
+.mobilePanel {
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--md-surface);
+  border-radius: 16px 16px 0 0;
+  padding: 16px;
+}
+
+.mobilePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.mobilePanelTitle {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.mobilePanelClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--md-on-surface);
+  cursor: pointer;
+}
+
+.mobilePanelClose:hover {
+  background-color: var(--md-surface-container);
+}
+
+.closeIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.mobileSection {
+  margin-bottom: 16px;
+}
+
+.mobileSectionLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+  margin-bottom: 8px;
+}
+
+.mobileActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--md-outline-variant);
+}
+
+.mobileResetButton {
+  flex: 1;
+  height: 40px;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-radius-pill);
+  background: transparent;
+  color: var(--md-on-surface);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.mobileApplyButton {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: var(--md-radius-pill);
+  background-color: var(--md-primary);
+  color: var(--md-on-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Responsive: show mobile row, hide desktop on small screens */
+@media (max-width: 767px) {
+  .desktopFilters {
+    display: none;
+  }
+
+  .resetButton {
+    display: none;
+  }
+
+  .mobileRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .inner {
+    padding: 0 16px;
+    height: 48px;
+  }
+}

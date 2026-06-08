@@ -1,0 +1,69 @@
+/* PeriodFilter — M3 Filter chips (single select) */
+.container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--md-radius-pill);
+  border: 1px solid var(--md-outline-variant);
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.chip:hover {
+  background-color: var(--md-surface-container);
+}
+
+.chipSelected {
+  background-color: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border-color: transparent;
+}
+
+.chipSelected:hover {
+  background-color: var(--md-primary-container);
+}
+
+.checkIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Custom date range inputs */
+.dateInputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.dateInput {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 8px;
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.dateSeparator {
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+}

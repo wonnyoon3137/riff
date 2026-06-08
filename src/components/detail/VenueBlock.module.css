@@ -1,0 +1,27 @@
+/* VenueBlock — venue name + address text */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heading {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.name {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--md-on-surface);
+}
+
+.address {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}

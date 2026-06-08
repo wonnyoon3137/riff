@@ -1,0 +1,48 @@
+/* InfoBlock — title, meta, period, state, time */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+  color: var(--md-on-surface);
+}
+
+.meta {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}
+
+.period {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--md-on-surface);
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}
+
+.timeGuidance {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+  white-space: pre-line;
+}

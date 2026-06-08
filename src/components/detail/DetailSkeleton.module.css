@@ -1,0 +1,71 @@
+/* DetailSkeleton — S2-L loading state */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--md-surface-container) 25%,
+    var(--md-surface-container-high) 50%,
+    var(--md-surface-container) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.poster {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--md-radius-card);
+}
+
+.infoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.titleLine {
+  height: 32px;
+  width: 70%;
+  border-radius: 4px;
+}
+
+.metaLine {
+  height: 20px;
+  width: 50%;
+  border-radius: 4px;
+}
+
+.periodLine {
+  height: 24px;
+  width: 60%;
+  border-radius: 4px;
+}
+
+.badgeLine {
+  height: 24px;
+  width: 80px;
+  border-radius: var(--md-radius-pill);
+}
+
+.textLine {
+  height: 16px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.textLineShort {
+  width: 40%;
+}
+
+.buttonLine {
+  height: 40px;
+  width: 160px;
+  border-radius: var(--md-radius-pill);
+}

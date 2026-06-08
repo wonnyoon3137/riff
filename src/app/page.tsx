@@ -1,8 +1,111 @@
+"use client";
+
+import { Suspense, useCallback, useMemo } from "react";
+import AppBar from "@/components/AppBar";
+import FilterBar from "@/components/FilterBar";
+import ResultSummary from "@/components/ResultSummary";
+import PerformanceGrid, {
+  PerformanceGridSkeleton,
+} from "@/components/PerformanceGrid";
+import EmptyState from "@/components/EmptyState";
+import ErrorState from "@/components/ErrorState";
+import { useFilterState } from "@/hooks/useFilterState";
+import { usePerformances } from "@/hooks/usePerformances";
+import { useScrollRestore } from "@/hooks/useScrollRestore";
+import type { PerformanceSummary, SortOrder } from "@/domain/types";
+
+function HomeContent() {
+  const { filter, setFilter, resetFilter } = useFilterState();
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = usePerformances(filter);
+
+  // Flatten all pages into a single item list
+  const items = useMemo<PerformanceSummary[]>(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => page.items);
+  }, [data]);
+
+  // Approximate total count from first page
+  const totalCount = data?.pages?.[0]?.totalApprox;
+
+  // Data is ready when we have at least one page loaded
+  const isReady = !isLoading && !isError && data !== undefined;
+
+  // Save/restore scroll position
+  const { saveScroll } = useScrollRestore(filter, isReady);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleSortChange = useCallback(
+    (sort: SortOrder) => {
+      setFilter((prev) => ({ ...prev, sort }));
+    },
+    [setFilter],
+  );
+
+  const handleCardClick = useCallback(() => {
+    saveScroll();
+  }, [saveScroll]);
+
+  // State branching: S1-L, S1-DEFAULT, S1-E, S1-X
+  let content: React.ReactNode;
+
+  if (isLoading) {
+    // S1-L: skeleton loading
+    content = <PerformanceGridSkeleton />;
+  } else if (isError) {
+    // S1-X: error state
+    content = <ErrorState onRetry={() => refetch()} />;
+  } else if (items.length === 0) {
+    // S1-E: empty state
+    content = <EmptyState onReset={resetFilter} />;
+  } else {
+    // S1-DEFAULT + S1-MORE
+    content = (
+      <PerformanceGrid
+        items={items}
+        hasNext={hasNextPage ?? false}
+        isFetchingNextPage={isFetchingNextPage}
+        onLoadMore={handleLoadMore}
+        onCardClick={handleCardClick}
+      />
+    );
+  }
+
+  return (
+    <>
+      <AppBar />
+      <FilterBar
+        filter={filter}
+        onChange={setFilter}
+        onReset={resetFilter}
+      />
+      <ResultSummary
+        totalCount={totalCount}
+        isLoading={isLoading}
+        sort={filter.sort}
+        onSortChange={handleSortChange}
+      />
+      <main>{content}</main>
+    </>
+  );
+}
+
 export default function HomePage() {
   return (
-    <main>
-      <h1>Riff</h1>
-      <p>공연 탐색 서비스 (스캐폴딩 중)</p>
-    </main>
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }

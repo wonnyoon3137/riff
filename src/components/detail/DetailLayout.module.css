@@ -1,0 +1,35 @@
+/* DetailLayout — 2-column desktop, 1-column mobile */
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 32px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+  align-items: start;
+}
+
+.leftColumn {
+  position: sticky;
+  top: 88px; /* 64px AppBar + 24px padding */
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 16px 16px 32px;
+  }
+
+  .leftColumn {
+    position: static;
+  }
+}

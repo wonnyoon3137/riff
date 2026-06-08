@@ -1,0 +1,32 @@
+/* GalleryBlock — intro images stacked vertically */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.imageList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  border-radius: var(--md-radius-card);
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+}

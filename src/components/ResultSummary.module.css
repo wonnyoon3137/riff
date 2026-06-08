@@ -1,0 +1,101 @@
+/* ResultSummary — count + sort toggle */
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 40px;
+}
+
+.count {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}
+
+.countBold {
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+/* Connected button group (sort toggle) */
+.sortGroup {
+  display: flex;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-radius-pill);
+  overflow: hidden;
+}
+
+.sortButton {
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sortButton:first-child {
+  border-right: 1px solid var(--md-outline-variant);
+}
+
+.sortButton:hover {
+  background-color: var(--md-surface-container);
+}
+
+.sortButtonActive {
+  background-color: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
+
+.sortButtonActive:hover {
+  background-color: var(--md-primary-container);
+}
+
+/* Skeleton for loading state */
+.skeleton {
+  width: 80px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--md-surface-container) 25%,
+    var(--md-surface-container-high) 50%,
+    var(--md-surface-container) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .count {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .sortButton {
+    padding: 0 8px;
+    font-size: 11px;
+  }
+}

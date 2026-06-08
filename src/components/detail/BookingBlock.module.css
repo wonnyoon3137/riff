@@ -1,0 +1,66 @@
+/* BookingBlock — booking links as filled buttons */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bookingButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: var(--md-radius-pill);
+  background-color: var(--md-primary);
+  color: var(--md-on-primary);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.bookingButton:hover {
+  background-color: var(--md-primary-hover);
+}
+
+.externalIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.noBooking {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}
+
+@media (max-width: 767px) {
+  .buttons {
+    flex-direction: column;
+  }
+
+  .bookingButton {
+    justify-content: center;
+    width: 100%;
+  }
+}

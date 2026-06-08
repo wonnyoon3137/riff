@@ -1,0 +1,28 @@
+/* PosterBlock — 3:4 poster with fallback */
+.posterWrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--md-radius-card);
+  overflow: hidden;
+  background-color: var(--md-surface-container);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.poster {
+  object-fit: cover;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--md-surface-container);
+}
+
+.placeholderIcon {
+  width: 64px;
+  height: 64px;
+  opacity: 0.4;
+}
