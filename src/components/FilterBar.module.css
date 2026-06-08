@@ -1,7 +1,7 @@
 /* FilterBar — sticky filter area below AppBar */
 .filterBar {
   position: sticky;
-  top: 64px;
+  top: 72px;
   z-index: 90;
   background-color: var(--md-surface);
   border-bottom: 1px solid var(--md-outline-variant);
@@ -14,8 +14,11 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 32px;
-  height: 56px;
-  overflow-x: auto;
+  height: auto;
+  min-height: 56px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 /* Desktop: show full filter bar */
@@ -25,6 +28,7 @@
   gap: 8px;
   flex: 1;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 /* Filter section separator */

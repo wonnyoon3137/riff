@@ -11,7 +11,7 @@
 
 .leftColumn {
   position: sticky;
-  top: 88px; /* 64px AppBar + 24px padding */
+  top: 96px; /* 72px AppBar + 24px padding */
 }
 
 .rightColumn {
