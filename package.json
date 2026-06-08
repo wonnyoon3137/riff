@@ -1,0 +1,43 @@
+{
+  "name": "riff",
+  "version": "0.1.0",
+  "private": true,
+  "description": "흩어진 공연 정보를 한곳에서 탐색하는 서비스 (KOPIS 기반, v0.1 MVP)",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "sync:venues": "tsx scripts/sync-venues.ts"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "fast-xml-parser": "^4.5.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "prettier": "^3.3.0",
+    "vitest": "^2.1.0",
+    "@playwright/test": "^1.48.0",
+    "tsx": "^4.19.0"
+  },
+  "comment": "스캐폴딩 계획용 매니페스트. 실제 버전은 `pnpm create next-app` 또는 설치 시점 최신으로 확정. node_modules 미설치 상태."
+}

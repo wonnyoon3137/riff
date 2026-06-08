@@ -1,0 +1,79 @@
+name: CI
+
+# 피드백 루프(OpenAI harness): 모든 PR은 타입·린트·테스트·빌드 그린이어야 머지.
+# 짧은 PR + 최소 차단 게이트 원칙. qa-engineer 에이전트가 실패를 planner로 환류.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: E2E (핵심 플로우)
+        run: pnpm test:e2e
+        env:
+          KOPIS_BASE_URL: ${{ vars.KOPIS_BASE_URL }}
+          KOPIS_SERVICE_KEY: ${{ secrets.KOPIS_SERVICE_KEY }}
+
+  docs-guard:
+    # 문서 기록 시스템 검증(OpenAI harness): 링크/구조 점검 placeholder.
+    # TODO: 전용 린터로 docs 신선도·교차링크·소유권 검사(ARCHITECTURE §6 / TD-07).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check docs presence
+        run: |
+          set -e
+          for f in AGENTS.md ARCHITECTURE.md \
+                   docs/product/overview.md docs/product/features.md docs/product/screens.md \
+                   docs/architecture/data-model.md docs/architecture/harness.md \
+                   docs/api/kopis-integration.md docs/api/kopis-codes.md; do
+            test -f "$f" || { echo "missing: $f"; exit 1; }
+          done
+          echo "docs OK"
