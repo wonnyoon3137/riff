@@ -1,0 +1,23 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--md-radius-pill);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--md-on-state);
+  white-space: nowrap;
+}
+
+.ongoing {
+  background-color: var(--md-state-ongoing);
+}
+
+.upcoming {
+  background-color: var(--md-state-upcoming);
+}
+
+.ended {
+  background-color: var(--md-state-ended);
+}

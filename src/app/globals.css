@@ -1,0 +1,124 @@
+@import "../styles/design-tokens.css";
+
+/* ── CSS Reset ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    "Helvetica Neue",
+    "Segoe UI",
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Malgun Gothic",
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    sans-serif;
+  background-color: var(--md-surface);
+  color: var(--md-on-surface);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ── M3 Typography Utility Classes ─────────────────────────── */
+.md-headline-small {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+}
+
+.md-title-large {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 400;
+}
+
+.md-title-medium {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+.md-body-large {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.md-body-medium {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.md-body-small {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.md-label-large {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.md-label-small {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+/* ── Focus Ring (Accessibility) ────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}

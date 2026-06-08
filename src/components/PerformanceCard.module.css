@@ -1,0 +1,93 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--md-radius-card);
+  background-color: var(--md-surface);
+  border: 1px solid var(--md-outline-variant);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Poster area */
+.posterWrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: var(--md-surface-container);
+}
+
+.poster {
+  object-fit: cover;
+}
+
+.posterPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--md-surface-container);
+}
+
+.placeholderImg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+/* Badge overlay */
+.badgeOverlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+/* Body area */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.title {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.period {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}
+
+.venue {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}
+
+.genre {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--md-on-surface-variant);
+}

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Providers from "./providers";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Riff - 공연 탐색",
@@ -12,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
