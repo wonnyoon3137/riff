@@ -1,0 +1,60 @@
+/*
+ * Riff — Design Tokens (Material 3 / Purple)
+ * 와이어프레임 확정 팔레트. globals.css에서 import 하여 사용:
+ *   @import "../styles/design-tokens.css";
+ * 색상은 M3 color role 이름을 따른다(하드코딩 hex 금지 — 이 파일의 토큰만 참조).
+ */
+
+:root {
+  /* Primary — 딥퍼플 */
+  --md-primary: #534AB7;
+  --md-on-primary: #FFFFFF;
+  --md-primary-container: #EEEDFE;       /* 라벤더 */
+  --md-on-primary-container: #26215C;
+  --md-primary-hover: #7F77DD;
+
+  /* Surface / Background */
+  --md-surface: #FFFFFF;
+  --md-surface-container: #F6F5FE;        /* 은은한 라벤더 틴트(베이지 대체) */
+  --md-surface-container-high: #EEEDFE;
+  --md-on-surface: #1C1B22;
+  --md-on-surface-variant: #5F5E6B;
+  --md-outline-variant: rgba(83, 74, 183, 0.20);
+
+  /* 공연 상태(prfstate) 뱃지 */
+  --md-state-ongoing: #0F6E56;            /* 틸 — 공연중 */
+  --md-state-upcoming: #534AB7;           /* 퍼플 — 공연예정 */
+  --md-state-ended: #5F5E5A;              /* 그레이 — 공연완료 */
+  --md-on-state: #FFFFFF;
+
+  /* Accent */
+  --md-accent-amber: #EF9F27;             /* 스포트라이트 / 포인트 */
+  --md-accent-teal: #1D9E75;              /* 음표 / 보조 */
+
+  /* Shape */
+  --md-radius-card: 12px;
+  --md-radius-pill: 999px;
+}
+
+/* 다크 모드 — v0.2 비목표이나 role 기반이라 토글만으로 확장 가능 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --md-primary: #AFA9EC;
+    --md-on-primary: #26215C;
+    --md-primary-container: #3C3489;
+    --md-on-primary-container: #CECBF6;
+    --md-primary-hover: #CECBF6;
+
+    --md-surface: #14131A;
+    --md-surface-container: #1E1C29;
+    --md-surface-container-high: #26215C;
+    --md-on-surface: #E7E5F2;
+    --md-on-surface-variant: #B0AEC0;
+    --md-outline-variant: rgba(175, 169, 236, 0.24);
+
+    --md-state-ongoing: #5DCAA5;
+    --md-state-upcoming: #AFA9EC;
+    --md-state-ended: #B4B2A9;
+    --md-on-state: #14131A;
+  }
+}

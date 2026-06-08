@@ -27,6 +27,7 @@
   - *Spacing* — M3 4px 그리드(4/8/12/16/20/24/32/48).
 - **컴포넌트:** App bar, Filter/Input chip, Stacked card, Button, Connected button group 등 **모두 M3 컴포넌트**를 사용하며, 구체적 키·권장 variant는 **§7 M3 컴포넌트 매핑** 참조.
 - **다크 모드:** v0.1 비목표이나, M3 color role 기반이라 추후 토글만으로 확장 가능.
+- **확정 팔레트(퍼플 테마)·일러스트:** 와이어프레임에서 확정한 실제 색 토큰과 일러스트 에셋은 [`design-tokens.md`](./design-tokens.md), `src/styles/design-tokens.css`, `public/illustrations/` 참조.
 
 ---
 

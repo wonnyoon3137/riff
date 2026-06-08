@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="120" viewBox="0 0 150 120" role="img" aria-label="조건에 맞는 공연이 없습니다">
+  <polygon points="75,8 112,70 38,70" fill="#FAC775" opacity="0.5"/>
+  <ellipse cx="75" cy="98" rx="48" ry="9" fill="#CECBF6"/>
+  <circle cx="75" cy="14" r="4" fill="#EF9F27"/>
+  <rect x="73.5" y="44" width="3" height="46" rx="1.5" fill="#534AB7"/>
+  <ellipse cx="75" cy="92" rx="11" ry="3.5" fill="#534AB7"/>
+  <circle cx="75" cy="40" r="9" fill="#7F77DD"/>
+  <rect x="71" y="33" width="8" height="14" rx="4" fill="#EEEDFE"/>
+  <circle cx="46" cy="50" r="3" fill="#1D9E75"/>
+  <rect x="48" y="38" width="2" height="13" rx="1" fill="#1D9E75"/>
+  <circle cx="104" cy="44" r="3" fill="#1D9E75"/>
+  <rect x="106" y="33" width="2" height="12" rx="1" fill="#1D9E75"/>
+</svg>
