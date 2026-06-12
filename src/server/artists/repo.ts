@@ -264,6 +264,88 @@ export function getPerformancesByArtist(
   return rows.map(rowToPerformanceArtist);
 }
 
+// ── 추가 조회/갱신 (CLI 스크립트용) ──────────────────────────
+
+/** ID(숫자 문자열)로 아티스트 조회. */
+export function findArtistById(
+  id: string,
+  database: Database.Database = getArtistDb(),
+): Artist | undefined {
+  const row = database
+    .prepare("SELECT * FROM artists WHERE id = ?")
+    .get(Number(id)) as ArtistRow | undefined;
+  return row ? rowToArtist(row) : undefined;
+}
+
+/**
+ * 미검증 아티스트 목록을 반환한다(is_manually_verified = 0).
+ * confidence 내림차순 정렬.
+ */
+export function listUnverifiedArtists(
+  database: Database.Database = getArtistDb(),
+): Artist[] {
+  const rows = database
+    .prepare(
+      `SELECT * FROM artists
+       WHERE is_manually_verified = 0
+       ORDER BY match_confidence DESC, name ASC`,
+    )
+    .all() as ArtistRow[];
+  return rows.map(rowToArtist);
+}
+
+/**
+ * 아티스트를 검증 완료로 표기한다(is_manually_verified = 1).
+ * 반환: 갱신 성공 여부.
+ */
+export function verifyArtist(
+  id: string,
+  database: Database.Database = getArtistDb(),
+): boolean {
+  const now = new Date().toISOString();
+  const result = database
+    .prepare(
+      `UPDATE artists
+       SET is_manually_verified = 1, updated_at = @now
+       WHERE id = @id`,
+    )
+    .run({ id: Number(id), now });
+  return result.changes > 0;
+}
+
+/**
+ * confidence가 threshold 이상인 미검증 아티스트를 일괄 검증한다.
+ * 반환: 갱신된 행 수.
+ */
+export function verifyArtistsAboveThreshold(
+  threshold: number,
+  database: Database.Database = getArtistDb(),
+): number {
+  const now = new Date().toISOString();
+  const result = database
+    .prepare(
+      `UPDATE artists
+       SET is_manually_verified = 1, updated_at = @now
+       WHERE is_manually_verified = 0
+         AND match_confidence >= @threshold`,
+    )
+    .run({ threshold, now });
+  return result.changes;
+}
+
+/**
+ * performance_artists 테이블에 있는 mt20id 목록을 반환한다.
+ * run-pipeline.ts에서 --all-unprocessed 판별에 사용.
+ */
+export function listProcessedPerformanceIds(
+  database: Database.Database = getArtistDb(),
+): Set<string> {
+  const rows = database
+    .prepare("SELECT DISTINCT mt20id FROM performance_artists")
+    .all() as { mt20id: string }[];
+  return new Set(rows.map((r) => r.mt20id));
+}
+
 /** 테스트/배치 경계용: 싱글톤 연결을 닫고 해제. */
 export function closeArtistDb(): void {
   if (db) {
