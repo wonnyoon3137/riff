@@ -10,6 +10,8 @@ import InfoBlock from "@/components/detail/InfoBlock";
 import BookingBlock from "@/components/detail/BookingBlock";
 import VenueBlock from "@/components/detail/VenueBlock";
 import { TextSection, ProducerSection } from "@/components/detail/TextInfoBlock";
+import PriceBandChip from "@/components/PriceBandChip";
+import { parsePriceBand } from "@/domain/price-band";
 import GalleryBlock from "@/components/detail/GalleryBlock";
 import ErrorState from "@/components/ErrorState";
 import { usePerformanceDetail } from "@/hooks/usePerformanceDetail";
@@ -62,7 +64,16 @@ export default function PerformanceDetailPage({ params }: PageProps) {
                 <TextSection title="줄거리" content={performance.story} />
               )}
               {performance.priceGuidance && (
-                <TextSection title="가격" content={performance.priceGuidance} />
+                <TextSection
+                  title="가격"
+                  content={performance.priceGuidance}
+                  chip={(() => {
+                    const { band, label } = parsePriceBand(
+                      performance.priceGuidance,
+                    );
+                    return <PriceBandChip band={band} label={label} />;
+                  })()}
+                />
               )}
               {performance.producers && (
                 <ProducerSection producers={performance.producers} />

@@ -36,7 +36,7 @@
 2. **자유 텍스트 원문 보존.** `prfcast`(출연진), `pcseguidance`(티켓가격) 등 KOPIS가 자유 텍스트로 주는 필드는 **v0.1에서 파싱하지 않고 원문 문자열을 그대로 보존**한다(∴ 기획서 Risk 2, features F3.1). 구조화는 v0.2 자체 인덱스 단계로 이관.
 3. **null 안전.** KOPIS는 필드 누락/빈 문자열이 잦다. 도메인 타입에서 선택 필드는 `?`(optional) 또는 명시적 `null`로 표현하고, 정규화 시 빈 문자열은 `undefined`로 정리한다.
 4. **단일 식별자.** 공연 식별자는 `mt20id`, 공연장 식별자는 `mt10id`를 내부 PK로 사용한다(KOPIS 키 그대로). 자체 PK를 새로 만들지 않는다(v0.1).
-5. **v0.1 비저장 원칙.** 공연 데이터는 **저장하지 않고** 매 요청 시 KOPIS에서 조회(필요 시 캐시). **예외: 공연장 마스터**(`Venue`)만 자체 DB에 사전 동기화(D5). 이 자체 DB가 v0.2 자체 인덱스의 기반이 된다.
+5. **v0.1 비저장 원칙.** 공연 데이터는 **저장하지 않고** 매 요청 시 KOPIS에서 조회(필요 시 캐시). **예외: 공연장 마스터(Venue, D5)와 아티스트 마스터(Artist, v3)** 를 자체 DB에 저장. 이 자체 DB가 v0.2 자체 인덱스의 기반이 된다.
 
 ---
 
@@ -49,6 +49,8 @@
 | `Venue` | 공연장(공연시설) | KOPIS `prfplc` | **자체 DB 저장(D5)** |
 | `BookingRelate` | 예매처 링크 (상세의 `relates[]`) | KOPIS 상세 `relates` | 비저장 |
 | `IntroImage` | 소개 이미지 (상세 `styurls`) | KOPIS 상세 | 비저장 |
+| `Artist` | 아티스트(출연자). 하이브리드 수집(prfcast 추출+MusicBrainz 매칭+수동 보정) | KOPIS prfcast + MusicBrainz | **자체 DB 저장(v3)** |
+| `PerformanceArtist` | 공연↔아티스트 출연 관계 | prfcast 추출 파이프라인 | **자체 DB 저장(v3)** |
 | `FilterState` | 사용자가 선택한 필터 상태 | 클라이언트 | URL/세션 |
 | `ListState` | 목록 화면 복원용 상태(스크롤/페이지/필터) | 클라이언트 | 세션(채택안 §7) |
 
@@ -212,6 +214,32 @@ export interface ListRestoreState {
 }
 ```
 
+### 3.5 Artist (아티스트 마스터 — 자체 DB, v3 P2)
+
+```ts
+/** 아티스트 마스터 (자체 DB, v3 P2) */
+export interface Artist {
+  id: string;               // 자체 생성 ID (UUID 또는 auto-increment)
+  name: string;              // 대표 이름 (정규화된 표기)
+  aliases?: string[];        // 표기 변형 ("BTS", "방탄소년단", "防弾少年団")
+  mbid?: string;             // MusicBrainz Artist ID (외부 식별자)
+  matchConfidence?: number;  // 외부 API 매칭 신뢰도 (0~1)
+  isManuallyVerified: boolean; // 수동 보정 완료 여부
+  meta?: Record<string, unknown>; // 확장용 메타(이미지 URL 등, 후속)
+  createdAt: string;         // ISO datetime
+  updatedAt: string;         // ISO datetime
+}
+
+/** 공연↔아티스트 출연 관계 (자체 DB, v3 P2) */
+export interface PerformanceArtist {
+  mt20id: string;            // 공연 KOPIS ID (FK, 비저장 공연의 참조키)
+  artistId: string;          // Artist.id (FK)
+  rawExtract: string;        // prfcast에서 추출한 원문 발췌 (원문 보존 원칙)
+  role?: string;             // 역할(배역) — 추출 가능 시
+  extractedAt: string;       // ISO datetime
+}
+```
+
 ---
 
 ## 4. KOPIS 응답 → 도메인 매핑
@@ -334,6 +362,60 @@ function toGenre(genrenm: string, shcate?: string): Genre | undefined;
 ### 5.4 자동완성 조회 API (요약)
 
 `GET /api/venues?q={keyword}` → `venues`에서 `name_normalized LIKE %q%` 상위 N개(예 20) 반환. 상세 설계는 [`kopis-integration.md`](../api/kopis-integration.md) §BFF.
+
+---
+
+## 5.5 아티스트 마스터 데이터 (v3 P2)
+
+> Venue 선례(§5)와 동일한 구조. 목적: 상세 페이지 아티스트 칩 표시(F7)의 데이터 토대를 구축하고, 후속 아티스트 필터(P3)의 기반을 만든다.
+
+### 5.5.1 데이터 흐름
+
+```
+[prfcast 추출 파이프라인] ──▶ prfcast 원문에서 아티스트명 추출
+         │
+         ▼
+[MusicBrainz 매칭] ──▶ 추출된 이름으로 MusicBrainz API 조회, mbid + 신뢰도 획득
+         │
+         ▼
+[수동 보정] ──▶ 매칭 신뢰도 낮은 항목 수동 검증/보정
+         │
+         ▼
+artists 테이블 upsert (name 기준 중복 판별)
+performance_artists 테이블 upsert (mt20id + artist_id 기준)
+```
+
+### 5.5.2 저장 구조 (자체 DB)
+
+**`artists` 테이블:**
+
+| 컬럼 | 타입 | 비고 |
+|---|---|---|
+| `id` (PK) | string | 자체 생성 ID (UUID 또는 auto-increment) |
+| `name` | string | 대표 이름 (정규화 표기). 인덱스 |
+| `aliases` | JSON | 표기 변형 배열. nullable |
+| `mbid` | string | MusicBrainz Artist ID. nullable |
+| `match_confidence` | number | 외부 API 매칭 신뢰도 (0~1). nullable |
+| `is_manually_verified` | boolean | 수동 보정 완료 여부. default false |
+| `created_at` | datetime | 생성 시각 |
+| `updated_at` | datetime | 최종 갱신 시각 |
+
+인덱스: `name`(검색), `mbid` unique nullable, `id` unique.
+
+**`performance_artists` 테이블:**
+
+| 컬럼 | 타입 | 비고 |
+|---|---|---|
+| `mt20id` + `artist_id` (composite PK) | string, string | 공연 KOPIS ID + Artist.id |
+| `raw_extract` | string | prfcast에서 추출한 원문 발췌 (원문 보존 불변) |
+| `role` | string | 역할(배역). nullable |
+| `extracted_at` | datetime | 추출 시각 |
+
+### 5.5.3 동기화 방식
+
+- **upsert 멱등:** Venue sync 선례와 동일. 동일 아티스트(name 기준)가 이미 존재하면 갱신, 없으면 삽입.
+- **prfcast 원문 보존 불변:** 추출은 별도 `performance_artists` 테이블에 사본(`raw_extract`)으로 적재. 원본 `prfcast` 필드는 기존대로 `Performance.cast`에 원문 보존(§1.2 원칙 유지).
+- **매칭 파이프라인:** prfcast 추출 → MusicBrainz 매칭 → 수동 보정의 3단계. 각 단계는 독립 실행 가능(부분 실행 허용).
 
 ---
 
