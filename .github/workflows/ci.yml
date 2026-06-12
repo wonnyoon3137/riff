@@ -58,18 +58,14 @@ jobs:
           KOPIS_SERVICE_KEY: ${{ secrets.KOPIS_SERVICE_KEY }}
 
   docs-guard:
-    # 문서 기록 시스템 검증(OpenAI harness): 링크/구조 점검 placeholder.
-    # TODO: 전용 린터로 docs 신선도·교차링크·소유권 검사(ARCHITECTURE §6 / TD-07).
+    # 문서 기록 시스템 검증(OpenAI harness): docs↔code 드리프트 가드(#4 P-4 / #20 T-09).
+    # 필수 docs 존재 + docs→코드 경로 실존 + 결정 SSOT(D#) 무결성 + 코드 D# 태그 교차검증.
+    # (검사 항목·한계는 scripts/check-docs-drift.mjs 헤더 주석 참조.)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check docs presence
-        run: |
-          set -e
-          for f in AGENTS.md ARCHITECTURE.md \
-                   docs/product/overview.md docs/product/features.md docs/product/screens.md \
-                   docs/architecture/data-model.md docs/architecture/harness.md \
-                   docs/api/kopis-integration.md docs/api/kopis-codes.md; do
-            test -f "$f" || { echo "missing: $f"; exit 1; }
-          done
-          echo "docs OK"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Docs ↔ code 드리프트 검사
+        run: node scripts/check-docs-drift.mjs
