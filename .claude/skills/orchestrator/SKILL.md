@@ -32,7 +32,7 @@ Riff는 하네스 기반으로 개발한다. 이 스킬은 "누가 언제 어떤
 
 ## 완료 기준 (피드백 루프)
 - `pnpm typecheck && pnpm lint && pnpm test` 그린. 핵심 플로우는 e2e.
-- qa-engineer 검증 통과(경계면 정합 + 결정 준수 + 미검증 코드 하드코딩 0).
+- **QA 게이트 티어(`docs/process/qa-gate-tiers.md`)**: Deep 작업은 qa-engineer 풀 검증(경계면 정합 + 결정 준수 + 미검증 코드 하드코딩 0) 필수. Fast 작업은 자동 게이트(typecheck/lint/test/e2e + CI)로 완료. 의심 시 Deep.
 - 변경이 docs와 일치(불일치 시 docs 갱신 PR 동반).
 
 ## 데이터 전달
