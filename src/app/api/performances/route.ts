@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { kopisGet, KopisApiError } from "@/server/kopis/client";
 import { toPerformanceSummary } from "@/server/kopis/normalize";
 import { mergePerformances, slicePage } from "@/server/kopis/merge";
+import { mapWithConcurrency } from "@/server/kopis/concurrency";
 import { queryToFilter, clampRange, isRangeExceeded } from "@/domain/filter-url";
 import { GENRE_TO_SHCATE } from "@/domain/kopis-codes";
 import type { KopisPblprfrListItem } from "@/server/kopis/raw-types";
 import type { PerformanceListResponse, PerformanceSummary } from "@/domain/types";
 
 const DEFAULT_ROWS = 30;
-// KOPIS 호출 시 넉넉하게 가져올 배수 (다중 지역 병합 시)
-const FETCH_MULTIPLIER = 2;
+// 다중 지역(D4) 누적 fetch 동시성 상한 (§7.2 기본 5; 실측 후 조정).
+const REGION_FETCH_CONCURRENCY =
+  Number(process.env.KOPIS_REGION_CONCURRENCY) || 5;
 
 function dateToKopis(isoDate: string): string {
   // "yyyy-MM-dd" -> "yyyyMMdd"
@@ -60,27 +62,30 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 다중 지역: 병렬 호출 (D4)
+    // 다중 지역 (D4): 지역별 KOPIS 페이지 경계와 전역 병합 경계가 어긋나
+    // page>1 에서 항목이 누락된다(#21). 각 지역을 cpage=1..page 까지 누적 fetch한 뒤
+    // 전역 병합·dedup·정렬하고 slicePage(merged, page, rows)로 전역 오프셋을 자른다.
     const regionCodes = filter.regions.map((r) => r.sidoCode);
-    const fetchRows = rows * FETCH_MULTIPLIER;
 
-    const regionResults = await Promise.all(
-      regionCodes.map((signgucode) =>
-        fetchPerformances({
+    // 호출 수가 N(지역) × page 까지 늘 수 있으므로 동시성 상한으로 batch 분할(§7.2).
+    const regionResults = await mapWithConcurrency(
+      regionCodes,
+      REGION_FETCH_CONCURRENCY,
+      (signgucode) =>
+        fetchRegionUpToPage({
           stdate,
           eddate,
-          cpage: page,
-          rows: fetchRows,
+          page,
+          rows,
           shcate,
           signgucode,
           venueId: filter.venueId,
         }),
-      ),
     );
 
     const merged = mergePerformances(regionResults, filter.sort);
     const filtered = filterByGenres(merged, filter.genres);
-    const { items, hasNext } = slicePage(filtered, 1, rows);
+    const { items, hasNext } = slicePage(filtered, page, rows);
 
     return NextResponse.json<PerformanceListResponse>({
       items,
@@ -133,6 +138,38 @@ async function fetchPerformances(params: {
     prfplccd: params.venueId,
   });
   return items.map(toPerformanceSummary);
+}
+
+/**
+ * 한 지역(signgucode)에서 전역 page 윈도우를 보장하기 위해 cpage=1..page 를 누적 fetch.
+ * 각 KOPIS 호출은 rows(≤100)개씩. 한 페이지가 rows 미만이면 해당 지역 소진 → 조기 종료.
+ * 최대 page*rows 개까지만 보관(전역 slice에 필요한 prefix).
+ */
+async function fetchRegionUpToPage(params: {
+  stdate: string;
+  eddate: string;
+  page: number;
+  rows: number;
+  shcate?: string;
+  signgucode: string;
+  venueId?: string;
+}): Promise<PerformanceSummary[]> {
+  const need = params.page * params.rows;
+  const out: PerformanceSummary[] = [];
+  for (let cpage = 1; cpage <= params.page; cpage++) {
+    const batch = await fetchPerformances({
+      stdate: params.stdate,
+      eddate: params.eddate,
+      cpage,
+      rows: params.rows,
+      shcate: params.shcate,
+      signgucode: params.signgucode,
+      venueId: params.venueId,
+    });
+    out.push(...batch);
+    if (batch.length < params.rows || out.length >= need) break; // 지역 소진 or 충분
+  }
+  return out;
 }
 
 function filterByGenres(

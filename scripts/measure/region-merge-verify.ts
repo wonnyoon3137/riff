@@ -13,12 +13,15 @@
  *
  * 실행: pnpm tsx scripts/measure/region-merge-verify.ts
  *
- * 핵심 발견(현행 route.ts 알고리즘):
- *   각 지역을 cpage=page 로 호출하고, 병합 후 항상 slicePage(..., 1, rows) 한다.
+ * 이력(#21):
+ *   결함 버전은 각 지역을 cpage=page 로 호출하고, 병합 후 항상 slicePage(..., 1, rows) 했다.
  *   → 지역별 페이지 경계와 "전역 정렬 병합" 경계가 어긋나
- *     클라이언트 page>1 에서 누락·중복이 발생한다.
- *   올바른 알고리즘: 모든 지역을 1..page 까지(또는 충분히) fetch 후 전역 병합·정렬하고
+ *     클라이언트 page>1 에서 누락·중복이 발생했다.
+ *   수정 버전(현행 route.ts): 모든 지역을 cpage=1..page 까지 누적 fetch 후 전역 병합·정렬하고
  *     slicePage(merged, page, rows) 로 전역 오프셋을 자른다.
+ *
+ * 이 하네스는 회귀 가드다: 현행 route.ts 알고리즘이 ground-truth 와 모든 페이지에서
+ *   일치하면 exit 0, 어긋나면 exit 2(결함 재발). 결함 버전(legacyAlgo)도 대조용으로 남긴다.
  */
 
 import { mergePerformances, slicePage } from "../../src/server/kopis/merge";
@@ -59,8 +62,8 @@ function kopisRegionPage(
   return all.slice(start, start + rows);
 }
 
-// ---- 현행 route.ts 알고리즘 (버그 재현) ----
-function currentAlgo(
+// ---- 결함 버전 (#21 이전, 대조용) ----
+function legacyAlgo(
   regions: PerformanceSummary[][],
   clientPage: number,
   rows: number,
@@ -78,20 +81,25 @@ function currentAlgo(
   return { items, calls };
 }
 
-// ---- 올바른 알고리즘 (제안 수정) ----
-function correctAlgo(
+// ---- 현행 route.ts 알고리즘 (#21 수정: cpage=1..page 누적 fetch → 전역 slice) ----
+function currentAlgo(
   regions: PerformanceSummary[][],
   clientPage: number,
   rows: number,
   sort: SortOrder,
 ): { items: PerformanceSummary[]; calls: number } {
-  // 전역 page*rows 개를 보장하려면 각 지역에서 page*rows 개까지 누적 fetch.
-  // 여기선 단순화를 위해 지역 KOPIS rows<=100 가정 하에 page*rows 를 한 번에 요청.
   const need = clientPage * rows;
   let calls = 0;
+  // route.ts fetchRegionUpToPage 와 동치: 각 지역 cpage=1..page 누적, rows 미만이면 조기 종료.
   const regionResults = regions.map((all) => {
-    calls++;
-    return kopisRegionPage(all, 1, need); // 1페이지부터 need 개
+    const out: PerformanceSummary[] = [];
+    for (let cpage = 1; cpage <= clientPage; cpage++) {
+      calls++;
+      const batch = kopisRegionPage(all, cpage, rows);
+      out.push(...batch);
+      if (batch.length < rows || out.length >= need) break;
+    }
+    return out;
   });
   const merged = mergePerformances(regionResults, sort);
   const { items } = slicePage(merged, clientPage, rows); // 전역 오프셋
@@ -115,7 +123,7 @@ function idsOf(items: PerformanceSummary[]): string[] {
 
 function main() {
   const ROWS = 30;
-  const FETCH_MULTIPLIER = 2; // route.ts 값
+  const FETCH_MULTIPLIER = 2; // 결함 버전(legacyAlgo)이 쓰던 값 — 대조용
   const SORT: SortOrder = "START_ASC";
   const PAGES = 4;
 
@@ -137,15 +145,18 @@ function main() {
   let currentDupAcrossPages = 0;
   let currentMissingTotal = 0;
   let mismatchPages = 0;
+  let legacyMismatchPages = 0;
+  let currentMaxCalls = 0;
 
   for (let page = 1; page <= PAGES; page++) {
     const truth = groundTruth(regions, page, ROWS, SORT);
-    const cur = currentAlgo(regions, page, ROWS, SORT, FETCH_MULTIPLIER);
-    const correct = correctAlgo(regions, page, ROWS, SORT);
+    const cur = currentAlgo(regions, page, ROWS, SORT);
+    const legacy = legacyAlgo(regions, page, ROWS, SORT, FETCH_MULTIPLIER);
 
     const truthIds = idsOf(truth);
     const curIds = idsOf(cur.items);
-    const correctIds = idsOf(correct.items);
+    const legacyIds = idsOf(legacy.items);
+    currentMaxCalls = Math.max(currentMaxCalls, cur.calls);
 
     // 현행: 이전 페이지에서 이미 본 id 가 다시 나오면 중복(across-page).
     for (const id of curIds) {
@@ -156,17 +167,18 @@ function main() {
 
     const curMatchesTruth =
       JSON.stringify(curIds) === JSON.stringify(truthIds);
-    const correctMatchesTruth =
-      JSON.stringify(correctIds) === JSON.stringify(truthIds);
+    const legacyMatchesTruth =
+      JSON.stringify(legacyIds) === JSON.stringify(truthIds);
     if (!curMatchesTruth) mismatchPages++;
+    if (!legacyMatchesTruth) legacyMismatchPages++;
 
     console.log(`--- client page ${page} ---`);
     console.log(`  ground-truth ids[0..3]: ${truthIds.slice(0, 4).join(",")} ...`);
     console.log(
-      `  현행 route.ts        : ${curMatchesTruth ? "✅ 일치" : "❌ 불일치"} (KOPIS 호출 ${cur.calls}회)`,
+      `  현행 route.ts (수정) : ${curMatchesTruth ? "✅ 일치" : "❌ 불일치"} (KOPIS 호출 ${cur.calls}회)`,
     );
     console.log(
-      `  제안 수정            : ${correctMatchesTruth ? "✅ 일치" : "❌ 불일치"} (KOPIS 호출 ${correct.calls}회)`,
+      `  결함 버전(#21 이전)  : ${legacyMatchesTruth ? "✅ 일치" : "❌ 불일치"} (KOPIS 호출 ${legacy.calls}회)`,
     );
     if (!curMatchesTruth) {
       const missing = truthIds.filter((id) => !curIds.includes(id));
@@ -180,25 +192,30 @@ function main() {
   }
 
   console.log("\n=== 요약 ===");
-  console.log(`전체 ${PAGES} 페이지 중 현행 알고리즘 불일치 페이지: ${mismatchPages}`);
-  console.log(`현행: 페이지 간 중복(같은 공연 재노출) 총 ${currentDupAcrossPages}건`);
-  console.log(`현행: 누락(전역 정렬 기준 빠진 항목) 총 ${currentMissingTotal}건`);
+  console.log(`전체 ${PAGES} 페이지 중 현행(수정) 불일치 페이지: ${mismatchPages}`);
+  console.log(`현행(수정): 페이지 간 중복(같은 공연 재노출) 총 ${currentDupAcrossPages}건`);
+  console.log(`현행(수정): 누락(전역 정렬 기준 빠진 항목) 총 ${currentMissingTotal}건`);
+  console.log(`(대조) 결함 버전 불일치 페이지: ${legacyMismatchPages}`);
   console.log(
-    "\n부하(호출 수): 현행/제안 모두 page 당 지역 수 N 회 = O(N). 시도 최대 17 → 페이지당 ≤17 호출.",
+    `\n부하(호출 수): 현행은 page 당 지역 수 N × cpage(1..page) = O(N·page).`,
   );
   console.log(
-    "→ 동시성 상한(§7.2 기본 5)과 #12 실측 결과로 병렬 호출 batch 크기를 조정할 것.",
+    `  이 시나리오 최대 호출 = ${currentMaxCalls}회 (page ${PAGES}, 지역 ${regions.length}).`,
+  );
+  console.log(
+    "→ 동시성 상한(§7.2 기본 5, KOPIS_REGION_CONCURRENCY)으로 batch 분할해 동시 호출을 제한한다.",
   );
 
-  if (mismatchPages > 0) {
+  if (mismatchPages > 0 || currentDupAcrossPages > 0) {
     console.log(
-      "\n결론: 현행 다중지역 페이지네이션은 page>1 에서 누락·중복 발생(정확도 결함).",
-    );
-    console.log(
-      "수정안: 모든 지역을 1..page 까지 누적 fetch → 전역 병합·정렬 → slicePage(merged, page, rows).",
+      "\n결론: 현행 다중지역 페이지네이션에 누락·중복 결함 재발(회귀).",
     );
     process.exit(2); // 결함 검출됨을 종료코드로 신호
   }
+
+  console.log(
+    "\n결론: 현행 route.ts 다중지역 페이지네이션은 모든 페이지에서 누락·중복 0 (ground-truth 일치). ✅",
+  );
 }
 
 main();
