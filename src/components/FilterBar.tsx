@@ -2,18 +2,21 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { FilterState } from "@/domain/types";
-import { defaultFilterState } from "@/domain/filter-url";
+import { defaultFilterState, normalizeSearchTerm } from "@/domain/filter-url";
 import { GENRE_DISPLAY_LABELS } from "@/domain/kopis-codes";
 import PeriodFilter from "./filters/PeriodFilter";
 import RegionFilter from "./filters/RegionFilter";
 import GenreFilter from "./filters/GenreFilter";
 import VenueFilter from "./filters/VenueFilter";
+import SearchField from "./filters/SearchField";
 import styles from "./FilterBar.module.css";
 
 interface FilterBarProps {
   filter: FilterState;
   onChange: (next: FilterState) => void;
   onReset: () => void;
+  /** 검색 Enter 즉시 반영용 debounce flush (F5.3). */
+  onFlush?: () => void;
 }
 
 function TuneIcon() {
@@ -48,7 +51,12 @@ function CloseIcon() {
   );
 }
 
-export default function FilterBar({ filter, onChange, onReset }: FilterBarProps) {
+export default function FilterBar({
+  filter,
+  onChange,
+  onReset,
+  onFlush,
+}: FilterBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const def = useMemo(() => defaultFilterState(), []);
@@ -59,7 +67,8 @@ export default function FilterBar({ filter, onChange, onReset }: FilterBarProps)
       filter.isNationwide === def.isNationwide &&
       filter.regions.length === 0 &&
       filter.genres.length === 0 &&
-      !filter.venueId
+      !filter.venueId &&
+      !normalizeSearchTerm(filter.searchTerm)
     );
   }, [filter, def]);
 
@@ -70,6 +79,7 @@ export default function FilterBar({ filter, onChange, onReset }: FilterBarProps)
     if (!filter.isNationwide && filter.regions.length > 0) count++;
     if (filter.genres.length > 0) count++;
     if (filter.venueId) count++;
+    if (normalizeSearchTerm(filter.searchTerm)) count++;
     return count;
   }, [filter, def]);
 
@@ -113,6 +123,10 @@ export default function FilterBar({ filter, onChange, onReset }: FilterBarProps)
 
   return (
     <nav className={styles.filterBar} aria-label="필터">
+      {/* 영역 B' — 공연명 검색 (§2.3a, F5). 필터바 위 별도 줄. */}
+      <div className={styles.searchRow}>
+        <SearchField filter={filter} onChange={onChange} onFlush={onFlush} />
+      </div>
       <div className={styles.inner}>
         {/* Desktop filter bar */}
         <div className={styles.desktopFilters}>
