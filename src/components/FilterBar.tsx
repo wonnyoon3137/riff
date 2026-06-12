@@ -2,7 +2,11 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { FilterState } from "@/domain/types";
-import { defaultFilterState, normalizeSearchTerm } from "@/domain/filter-url";
+import {
+  countActiveFilters,
+  defaultFilterState,
+  isDefaultFilter,
+} from "@/domain/filter-url";
 import { GENRE_DISPLAY_LABELS } from "@/domain/kopis-codes";
 import PeriodFilter from "./filters/PeriodFilter";
 import RegionFilter from "./filters/RegionFilter";
@@ -61,27 +65,10 @@ export default function FilterBar({
 
   const def = useMemo(() => defaultFilterState(), []);
 
-  const isDefault = useMemo(() => {
-    return (
-      filter.period.preset === def.period.preset &&
-      filter.isNationwide === def.isNationwide &&
-      filter.regions.length === 0 &&
-      filter.genres.length === 0 &&
-      !filter.venueId &&
-      !normalizeSearchTerm(filter.searchTerm)
-    );
-  }, [filter, def]);
+  const isDefault = useMemo(() => isDefaultFilter(filter), [filter]);
 
-  // Count active filters for mobile badge
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filter.period.preset !== def.period.preset) count++;
-    if (!filter.isNationwide && filter.regions.length > 0) count++;
-    if (filter.genres.length > 0) count++;
-    if (filter.venueId) count++;
-    if (normalizeSearchTerm(filter.searchTerm)) count++;
-    return count;
-  }, [filter, def]);
+  // Count active filters for mobile badge (#25: sort 포함).
+  const activeFilterCount = useMemo(() => countActiveFilters(filter), [filter]);
 
   // Build chip summaries for mobile
   const summaryChips = useMemo(() => {

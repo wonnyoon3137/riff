@@ -5,7 +5,13 @@ import type {
   PeriodPreset,
   SortOrder,
 } from "./types";
-import { GENRE_SLUG_MAP, GENRE_TO_SLUG } from "./kopis-codes";
+import { GENRE_SLUG_MAP, GENRE_TO_SLUG, SIDO_LIST } from "./kopis-codes";
+
+// 시도 코드 -> 정식 명칭 역매핑 (#24). URL은 코드만 저장(단방향)하므로
+// 역직렬화 시 표시 라벨을 SIDO_LIST(검증표 §3)에서 복원한다.
+const SIDO_CODE_TO_NAME: Record<string, string> = Object.fromEntries(
+  SIDO_LIST.map((s) => [s.code, s.name]),
+);
 
 const MAX_RANGE_DAYS = 31;
 
@@ -125,10 +131,12 @@ export function queryToFilter(q: URLSearchParams): FilterState {
     base.isNationwide = false;
     base.regions = regionParam.split(",").map((seg) => {
       const [sido, gugun] = seg.split(":");
+      // 라벨은 URL에 없으므로 코드→정식 명칭으로 복원(#24).
+      // 알 수 없는 코드는 코드 문자열을 폴백 라벨로 사용.
       return {
         sidoCode: sido,
         gugunCode: gugun || undefined,
-        label: sido,
+        label: SIDO_CODE_TO_NAME[sido] ?? sido,
       };
     });
   }
@@ -158,6 +166,38 @@ export function queryToFilter(q: URLSearchParams): FilterState {
   base.searchTerm = normalizeSearchTerm(q.get("q"));
 
   return base;
+}
+
+// ── 활성 필터 판정 (F2.5 필터 초기화) ─────────────────────
+// "필터 초기화" 버튼 활성/비활성 및 모바일 배지 카운트의 단일 진실원본.
+// resetFilter()가 defaultFilterState()로 되돌리며 sort도 기본값으로
+// 복귀시키므로(#25), sort 축도 활성 판정에 포함한다. searchTerm 선례와 일관.
+
+/** 필터가 디폴트 상태인지(= "필터 초기화" 비활성 조건). */
+export function isDefaultFilter(f: FilterState): boolean {
+  const def = defaultFilterState();
+  return (
+    f.period.preset === def.period.preset &&
+    f.isNationwide === def.isNationwide &&
+    f.regions.length === 0 &&
+    f.genres.length === 0 &&
+    !f.venueId &&
+    !normalizeSearchTerm(f.searchTerm) &&
+    f.sort === def.sort
+  );
+}
+
+/** 활성 필터 축 개수(모바일 배지용). 기간/지역/장르/공연장/검색어/정렬. */
+export function countActiveFilters(f: FilterState): number {
+  const def = defaultFilterState();
+  let count = 0;
+  if (f.period.preset !== def.period.preset) count++;
+  if (!f.isNationwide && f.regions.length > 0) count++;
+  if (f.genres.length > 0) count++;
+  if (f.venueId) count++;
+  if (normalizeSearchTerm(f.searchTerm)) count++;
+  if (f.sort !== def.sort) count++;
+  return count;
 }
 
 // ── 캐시/세션 키용 해시 ───────────────────────────────────

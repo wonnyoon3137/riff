@@ -26,4 +26,15 @@ test("여러 시도를 선택하면 목록이 병합 결과로 갱신된다", as
 
   // URL에 두 시도코드가 병합되어 직렬화됨 (URL↔필터 라운드트립, §8)
   await expect(page).toHaveURL(/region=11%2C26|region=11,26/);
+
+  // #24: debounce URL 동기화 후에도 칩은 코드("11")가 아니라
+  // 정식 명칭으로 표시되어야 한다. URL에는 코드만 저장(단방향)하되
+  // queryToFilter가 SIDO_LIST로 라벨을 복원한다.
+  await expect(
+    page.getByRole("button", { name: "서울특별시 제거" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "부산광역시 제거" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "11 제거" })).toHaveCount(0);
 });
