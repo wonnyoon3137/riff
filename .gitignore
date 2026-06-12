@@ -42,3 +42,9 @@ pnpm-debug.log*
 # misc
 *.tsbuildinfo
 .turbo
+
+# venues 자체 DB (SQLite, D5 동기화 산출물 — 커밋 금지)
+*.db
+*.sqlite
+*.sqlite3
+/data/
