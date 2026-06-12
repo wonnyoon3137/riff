@@ -69,4 +69,4 @@ import Image from "next/image";
 ## 6. 미해결
 
 - [ ] `globals.css` import 연결(Phase C 시작 시).
-- [ ] 일러스트를 React 컴포넌트로 래핑할지(`src/components/illustrations/`) 정적 SVG로 둘지 — Phase C에서 결정.
+- [ ] 일러스트를 React 컴포넌트로 래핑할지(`src/components/illustrations/`) 정적 SVG로 둘지 — Phase C에서 결정. <!-- drift-ignore: 미래 경로(미결 결정), 아직 미존재 정상 -->
