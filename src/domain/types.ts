@@ -121,6 +121,7 @@ export interface FilterState {
   venueId?: string;
   sort: SortOrder;
   searchTerm?: string; // 공연명 검색 (KOPIS shprfnm). trim 후 2자 미만이면 미전송 (F5)
+  artistId?: string; // 아티스트 필터 (자체 Artist DB, F8). 미선택 시 undefined
 }
 
 // ── 목록 복원 상태 ────────────────────────────────────────
