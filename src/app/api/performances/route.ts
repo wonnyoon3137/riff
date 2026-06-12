@@ -3,7 +3,12 @@ import { kopisGet, KopisApiError } from "@/server/kopis/client";
 import { toPerformanceSummary } from "@/server/kopis/normalize";
 import { mergePerformances, slicePage } from "@/server/kopis/merge";
 import { mapWithConcurrency } from "@/server/kopis/concurrency";
-import { queryToFilter, clampRange, isRangeExceeded } from "@/domain/filter-url";
+import {
+  queryToFilter,
+  clampRange,
+  isRangeExceeded,
+  normalizeSearchTerm,
+} from "@/domain/filter-url";
 import { GENRE_TO_SHCATE } from "@/domain/kopis-codes";
 import type { KopisPblprfrListItem } from "@/server/kopis/raw-types";
 import type { PerformanceListResponse, PerformanceSummary } from "@/domain/types";
@@ -37,6 +42,9 @@ export async function GET(request: NextRequest) {
       filter.genres.length === 1
         ? GENRE_TO_SHCATE[filter.genres[0]]
         : undefined;
+    // 공연명 검색 (F5). trim 후 2자 미만이면 undefined → shprfnm 미전송(전체 목록).
+    // 순수 AND(DEC-S1 옵션 A): 기간/지역/장르/정렬은 그대로 두고 shprfnm만 더한다.
+    const shprfnm = normalizeSearchTerm(filter.searchTerm);
 
     if (filter.isNationwide || filter.regions.length === 0) {
       // 전국: 단일 호출
@@ -47,6 +55,7 @@ export async function GET(request: NextRequest) {
         rows,
         shcate,
         venueId: filter.venueId,
+        shprfnm,
       });
       const sorted = mergePerformances([items], filter.sort);
 
@@ -80,6 +89,7 @@ export async function GET(request: NextRequest) {
           shcate,
           signgucode,
           venueId: filter.venueId,
+          shprfnm,
         }),
     );
 
@@ -127,6 +137,7 @@ async function fetchPerformances(params: {
   shcate?: string;
   signgucode?: string;
   venueId?: string;
+  shprfnm?: string;
 }): Promise<PerformanceSummary[]> {
   const items = await kopisGet<KopisPblprfrListItem>("/pblprfr", {
     stdate: params.stdate,
@@ -136,6 +147,7 @@ async function fetchPerformances(params: {
     shcate: params.shcate,
     signgucode: params.signgucode,
     prfplccd: params.venueId,
+    shprfnm: params.shprfnm,
   });
   return items.map(toPerformanceSummary);
 }
@@ -153,6 +165,7 @@ async function fetchRegionUpToPage(params: {
   shcate?: string;
   signgucode: string;
   venueId?: string;
+  shprfnm?: string;
 }): Promise<PerformanceSummary[]> {
   const need = params.page * params.rows;
   const out: PerformanceSummary[] = [];
@@ -165,6 +178,7 @@ async function fetchRegionUpToPage(params: {
       shcate: params.shcate,
       signgucode: params.signgucode,
       venueId: params.venueId,
+      shprfnm: params.shprfnm,
     });
     out.push(...batch);
     if (batch.length < params.rows || out.length >= need) break; // 지역 소진 or 충분

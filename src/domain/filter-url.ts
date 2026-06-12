@@ -9,6 +9,21 @@ import { GENRE_SLUG_MAP, GENRE_TO_SLUG } from "./kopis-codes";
 
 const MAX_RANGE_DAYS = 31;
 
+// 검색어 최소 길이 (F5.4). trim 후 이 미만이면 shprfnm 미전송 (공연장 자동완성 q<2 가드와 일관).
+export const SEARCH_MIN_LENGTH = 2;
+
+/**
+ * 검색어를 정규화한다 (F5.4 공백 정규화 / 2자 가드).
+ * 앞뒤 공백 제거 후 2자 미만이면 undefined(검색 비활성). 내부 공백은 보존.
+ */
+export function normalizeSearchTerm(
+  term: string | undefined | null,
+): string | undefined {
+  if (!term) return undefined;
+  const trimmed = term.trim();
+  return trimmed.length >= SEARCH_MIN_LENGTH ? trimmed : undefined;
+}
+
 // ── 디폴트 필터 (D1) ──────────────────────────────────────
 export function defaultFilterState(): FilterState {
   const today = new Date();
@@ -72,6 +87,12 @@ export function filterToQuery(f: FilterState): URLSearchParams {
     params.set("sort", f.sort.toLowerCase());
   }
 
+  // 검색어 (F5.3 ?q=). trim 후 2자 미만이면 미전송 (F5.4).
+  const search = normalizeSearchTerm(f.searchTerm);
+  if (search) {
+    params.set("q", search);
+  }
+
   return params;
 }
 
@@ -133,6 +154,9 @@ export function queryToFilter(q: URLSearchParams): FilterState {
     base.sort = sortParam;
   }
 
+  // 검색어 (F5.3 ?q=). 2자 미만은 비활성(undefined) (F5.4).
+  base.searchTerm = normalizeSearchTerm(q.get("q"));
+
   return base;
 }
 
@@ -147,6 +171,8 @@ export function filterHash(f: FilterState): string {
     f.genres.join("+") || "all",
     f.venueId || "",
     f.sort,
+    // 검색어별 캐시 분리 (F5.5). 2자 미만은 미전송과 동일(빈 문자열).
+    normalizeSearchTerm(f.searchTerm) || "",
   ];
   return parts.join("|");
 }
