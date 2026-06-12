@@ -7,6 +7,8 @@ import {
   isRangeExceeded,
   defaultFilterState,
   normalizeSearchTerm,
+  isDefaultFilter,
+  countActiveFilters,
 } from "@/domain/filter-url";
 import type { FilterState } from "@/domain/types";
 
@@ -78,12 +80,86 @@ describe("filterToQuery / queryToFilter round-trip", () => {
     expect(restored.sort).toBe("START_DESC");
   });
 
+  it("restores sido label from code on deserialize (#24)", () => {
+    const restored = queryToFilter(new URLSearchParams("region=11,41"));
+    expect(restored.isNationwide).toBe(false);
+    expect(restored.regions).toHaveLength(2);
+    expect(restored.regions[0]).toMatchObject({
+      sidoCode: "11",
+      label: "서울특별시",
+    });
+    expect(restored.regions[1]).toMatchObject({
+      sidoCode: "41",
+      label: "경기도",
+    });
+  });
+
+  it("restores sido label for code with gugun segment (#24)", () => {
+    const restored = queryToFilter(new URLSearchParams("region=11:1111"));
+    expect(restored.regions[0]).toMatchObject({
+      sidoCode: "11",
+      gugunCode: "1111",
+      label: "서울특별시",
+    });
+  });
+
+  it("falls back to code string for unknown sido code (#24)", () => {
+    const restored = queryToFilter(new URLSearchParams("region=99"));
+    expect(restored.regions[0]).toMatchObject({
+      sidoCode: "99",
+      label: "99",
+    });
+  });
+
   it("handles invalid params gracefully (fallback to defaults)", () => {
     const params = new URLSearchParams("period=INVALID&sort=RANDOM&genre=nope");
     const result = queryToFilter(params);
     expect(result.period.preset).toBe("DEFAULT_30D"); // fallback
     expect(result.sort).toBe("START_ASC"); // fallback
     expect(result.genres).toEqual([]); // unknown genre dropped
+  });
+});
+
+describe("활성 필터 판정 (F2.5 / #25 sort 포함)", () => {
+  it("default filter is treated as default", () => {
+    expect(isDefaultFilter(defaultFilterState())).toBe(true);
+    expect(countActiveFilters(defaultFilterState())).toBe(0);
+  });
+
+  it("sort-only change is NOT default (#25)", () => {
+    const f: FilterState = { ...defaultFilterState(), sort: "START_DESC" };
+    expect(isDefaultFilter(f)).toBe(false);
+    expect(countActiveFilters(f)).toBe(1);
+  });
+
+  it("counts each active axis incl. sort", () => {
+    const f: FilterState = {
+      ...defaultFilterState(),
+      genres: ["MUSICAL"],
+      sort: "START_DESC",
+    };
+    expect(isDefaultFilter(f)).toBe(false);
+    expect(countActiveFilters(f)).toBe(2);
+  });
+
+  it("region/genre/venue/search/period all count as active", () => {
+    const f: FilterState = {
+      period: { preset: "CUSTOM", range: { from: "2026-07-01", to: "2026-07-10" } },
+      regions: [{ sidoCode: "11", label: "서울특별시" }],
+      isNationwide: false,
+      genres: ["THEATER"],
+      venueId: "FC001",
+      sort: "START_ASC",
+      searchTerm: "오페라",
+    };
+    expect(isDefaultFilter(f)).toBe(false);
+    expect(countActiveFilters(f)).toBe(5);
+  });
+
+  it("guarded (<2) searchTerm does not count as active", () => {
+    const f: FilterState = { ...defaultFilterState(), searchTerm: "가" };
+    expect(isDefaultFilter(f)).toBe(true);
+    expect(countActiveFilters(f)).toBe(0);
   });
 });
 
