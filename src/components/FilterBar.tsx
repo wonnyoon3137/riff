@@ -12,6 +12,7 @@ import PeriodFilter from "./filters/PeriodFilter";
 import RegionFilter from "./filters/RegionFilter";
 import GenreFilter from "./filters/GenreFilter";
 import VenueFilter from "./filters/VenueFilter";
+import ArtistFilter from "./filters/ArtistFilter";
 import SearchField from "./filters/SearchField";
 import styles from "./FilterBar.module.css";
 
@@ -124,6 +125,8 @@ export default function FilterBar({
           <GenreFilter filter={filter} onChange={onChange} />
           <div className={styles.separator} />
           <VenueFilter filter={filter} onChange={onChange} />
+          <div className={styles.separator} />
+          <ArtistFilter filter={filter} onChange={onChange} />
         </div>
         <button
           type="button"
@@ -200,6 +203,11 @@ export default function FilterBar({
             <div className={styles.mobileSection}>
               <div className={styles.mobileSectionLabel}>공연장</div>
               <VenueFilter filter={filter} onChange={onChange} />
+            </div>
+
+            <div className={styles.mobileSection}>
+              <div className={styles.mobileSectionLabel}>아티스트</div>
+              <ArtistFilter filter={filter} onChange={onChange} />
             </div>
 
             <div className={styles.mobileActions}>
