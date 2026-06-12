@@ -1,0 +1,6 @@
+/* CastSection — artist chip group layout (v3 F7) */
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

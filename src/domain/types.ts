@@ -74,6 +74,7 @@ export interface Performance extends PerformanceSummary {
   producers?: ProducerInfo;
   introImages: IntroImage[];
   bookings: BookingRelate[];
+  matchedArtists?: MatchedArtist[]; // v3 F7: BFF에서 매칭된 출연 아티스트
 }
 
 // ── 공연장(Venue) ─────────────────────────────────────────
@@ -152,6 +153,15 @@ export interface PerformanceArtist {
   rawExtract: string; // prfcast에서 추출한 원문 발췌
   role?: string; // 역할(배역)
   extractedAt: string; // ISO datetime
+}
+
+// ── 매칭 아티스트 (BFF 상세 응답용, v3 F7) ──────────────
+/** BFF 상세 응답에 포함되는 매칭된 아티스트 정보 */
+export interface MatchedArtist {
+  id: string;
+  name: string;
+  role?: string;
+  rawExtract: string;
 }
 
 // ── BFF 응답 ──────────────────────────────────────────────

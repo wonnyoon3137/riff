@@ -10,6 +10,7 @@ import InfoBlock from "@/components/detail/InfoBlock";
 import BookingBlock from "@/components/detail/BookingBlock";
 import VenueBlock from "@/components/detail/VenueBlock";
 import { TextSection, ProducerSection } from "@/components/detail/TextInfoBlock";
+import CastSection from "@/components/detail/CastSection";
 import PriceBandChip from "@/components/PriceBandChip";
 import { parsePriceBand } from "@/domain/price-band";
 import GalleryBlock from "@/components/detail/GalleryBlock";
@@ -58,7 +59,10 @@ export default function PerformanceDetailPage({ params }: PageProps) {
                 address={performance.venueAddress}
               />
               {performance.cast && (
-                <TextSection title="출연" content={performance.cast} />
+                <CastSection
+                  cast={performance.cast}
+                  matchedArtists={performance.matchedArtists}
+                />
               )}
               {performance.story && (
                 <TextSection title="줄거리" content={performance.story} />

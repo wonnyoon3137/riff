@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { kopisGet, KopisApiError } from "@/server/kopis/client";
 import { toPerformance } from "@/server/kopis/normalize";
 import type { KopisPblprfrDetail } from "@/server/kopis/raw-types";
+import { getArtistsByPerformance } from "@/server/artists/repo";
+import type { MatchedArtist } from "@/domain/types";
 
 export async function GET(
   _request: NextRequest,
@@ -18,7 +20,25 @@ export async function GET(
       );
     }
     const performance = toPerformance(items[0]);
-    return NextResponse.json(performance);
+
+    // v3 F7: 매칭된 아티스트 조회 (DB 실패 시 빈 배열 fallback)
+    let matchedArtists: MatchedArtist[] = [];
+    try {
+      const artists = getArtistsByPerformance(mt20id);
+      matchedArtists = artists.map((a) => ({
+        id: a.id,
+        name: a.name,
+        role: a.role,
+        rawExtract: a.rawExtract,
+      }));
+    } catch (artistErr) {
+      console.warn(
+        `[/api/performances/${mt20id}] artist lookup failed, falling back to empty:`,
+        artistErr,
+      );
+    }
+
+    return NextResponse.json({ ...performance, matchedArtists });
   } catch (err) {
     if (err instanceof KopisApiError && err.resultCode === "04") {
       return NextResponse.json(

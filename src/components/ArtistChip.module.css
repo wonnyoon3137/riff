@@ -1,0 +1,35 @@
+/* ArtistChip — M3 tonal chip for matched artist (v3 F7) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--md-radius-pill);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  background-color: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+  transition: background-color 0.15s ease;
+}
+
+.chip:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--md-on-secondary-container) 8%,
+    var(--md-secondary-container)
+  );
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+.role {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+}
