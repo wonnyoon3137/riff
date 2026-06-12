@@ -15,7 +15,7 @@ import { useScrollRestore } from "@/hooks/useScrollRestore";
 import type { PerformanceSummary, SortOrder } from "@/domain/types";
 
 function HomeContent() {
-  const { filter, setFilter, resetFilter } = useFilterState();
+  const { filter, setFilter, resetFilter, flushFilter } = useFilterState();
   const {
     data,
     isLoading,
@@ -35,11 +35,22 @@ function HomeContent() {
   // Approximate total count from first page
   const totalCount = data?.pages?.[0]?.totalApprox;
 
+  // 현재 캐시에 로드된 페이지 수 (복원 게이트용).
+  const loadedPages = data?.pages?.length ?? 0;
+
   // Data is ready when we have at least one page loaded
   const isReady = !isLoading && !isError && data !== undefined;
 
-  // Save/restore scroll position
-  const { saveScroll } = useScrollRestore(filter, isReady);
+  // Save/restore scroll position + loaded pages (#23)
+  const { saveScroll } = useScrollRestore({
+    filter,
+    ready: isReady,
+    loadedPages,
+    hasNextPage: hasNextPage ?? false,
+    isFetchingNextPage,
+    fetchNextPage,
+    totalCount,
+  });
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -55,8 +66,11 @@ function HomeContent() {
   );
 
   const handleCardClick = useCallback(() => {
+    // #22: 카드 네비게이션 직전, 보류 중이던 debounce URL 동기화를 즉시 flush해
+    // 이후 router.replace가 상세 진입을 덮어쓰는 레이스를 제거한다.
+    flushFilter();
     saveScroll();
-  }, [saveScroll]);
+  }, [flushFilter, saveScroll]);
 
   // State branching: S1-L, S1-DEFAULT, S1-E, S1-X
   let content: React.ReactNode;
