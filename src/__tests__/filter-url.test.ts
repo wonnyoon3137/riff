@@ -6,6 +6,7 @@ import {
   clampRange,
   isRangeExceeded,
   defaultFilterState,
+  normalizeSearchTerm,
 } from "@/domain/filter-url";
 import type { FilterState } from "@/domain/types";
 
@@ -96,5 +97,85 @@ describe("filterHash", () => {
     const a = defaultFilterState();
     const b = { ...defaultFilterState(), sort: "START_DESC" as const };
     expect(filterHash(a)).not.toBe(filterHash(b));
+  });
+});
+
+describe("normalizeSearchTerm (F5.4 가드 / 공백 정규화)", () => {
+  it("trims surrounding whitespace, preserves inner spaces", () => {
+    expect(normalizeSearchTerm("  레 미제라블  ")).toBe("레 미제라블");
+  });
+
+  it("returns undefined for < 2 chars after trim", () => {
+    expect(normalizeSearchTerm("ا")).toBeUndefined();
+    expect(normalizeSearchTerm("가")).toBeUndefined();
+    expect(normalizeSearchTerm(" a ")).toBeUndefined();
+  });
+
+  it("returns undefined for empty / whitespace-only / nullish", () => {
+    expect(normalizeSearchTerm("")).toBeUndefined();
+    expect(normalizeSearchTerm("   ")).toBeUndefined();
+    expect(normalizeSearchTerm(undefined)).toBeUndefined();
+    expect(normalizeSearchTerm(null)).toBeUndefined();
+  });
+
+  it("accepts exactly 2 chars", () => {
+    expect(normalizeSearchTerm("가나")).toBe("가나");
+  });
+});
+
+describe("검색어 URL 동기화 (F5.3 ?q=)", () => {
+  it("serializes searchTerm to ?q= (>=2 chars)", () => {
+    const f: FilterState = { ...defaultFilterState(), searchTerm: "오페라" };
+    const params = filterToQuery(f);
+    expect(params.get("q")).toBe("오페라");
+  });
+
+  it("omits ?q= when search < 2 chars (guard, F5.4)", () => {
+    const f: FilterState = { ...defaultFilterState(), searchTerm: "가" };
+    expect(filterToQuery(f).get("q")).toBeNull();
+  });
+
+  it("omits ?q= when search is whitespace-only", () => {
+    const f: FilterState = { ...defaultFilterState(), searchTerm: "  " };
+    expect(filterToQuery(f).get("q")).toBeNull();
+  });
+
+  it("round-trips searchTerm through serialize -> deserialize", () => {
+    const f: FilterState = {
+      ...defaultFilterState(),
+      searchTerm: "레 미제라블",
+    };
+    const restored = queryToFilter(filterToQuery(f));
+    expect(restored.searchTerm).toBe("레 미제라블");
+  });
+
+  it("deserializes ?q= with surrounding whitespace (trimmed)", () => {
+    const restored = queryToFilter(new URLSearchParams("q=  뮤지컬  "));
+    expect(restored.searchTerm).toBe("뮤지컬");
+  });
+
+  it("drops ?q= shorter than 2 chars on deserialize", () => {
+    expect(queryToFilter(new URLSearchParams("q=가")).searchTerm).toBeUndefined();
+  });
+});
+
+describe("filterHash 검색어 분리 (F5.5)", () => {
+  it("produces different hash for different search terms", () => {
+    const a: FilterState = { ...defaultFilterState(), searchTerm: "오페라" };
+    const b: FilterState = { ...defaultFilterState(), searchTerm: "뮤지컬" };
+    expect(filterHash(a)).not.toBe(filterHash(b));
+  });
+
+  it("search vs no-search produce different hashes", () => {
+    const withSearch: FilterState = {
+      ...defaultFilterState(),
+      searchTerm: "오페라",
+    };
+    expect(filterHash(withSearch)).not.toBe(filterHash(defaultFilterState()));
+  });
+
+  it("guarded (<2) search shares cache entry with no-search", () => {
+    const guarded: FilterState = { ...defaultFilterState(), searchTerm: "가" };
+    expect(filterHash(guarded)).toBe(filterHash(defaultFilterState()));
   });
 });

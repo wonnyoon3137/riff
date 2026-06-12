@@ -119,6 +119,17 @@ export async function mockPerformanceApi(page: Page): Promise<void> {
     // 목록
     const regionParam = url.searchParams.get("region");
     const pageNum = Number(url.searchParams.get("page")) || 1;
+    const qParam = url.searchParams.get("q");
+
+    // F5: 공연명 검색(?q=). BFF가 q>=2자일 때만 부착하므로 픽스처도 동일 가정.
+    // 제목 부분일치로 필터(전국 풀에서). 결과는 단일 페이지로 응답.
+    if (qParam) {
+      const matched = NATIONWIDE_PAGE_1.filter((s) => s.title.includes(qParam));
+      await route.fulfill({
+        json: listResponse(matched, 1, false, matched.length),
+      });
+      return;
+    }
 
     if (regionParam) {
       // D4: 여러 시도코드 병합 (중복제거는 BFF 책임이지만 픽스처는 고유 id만 제공)

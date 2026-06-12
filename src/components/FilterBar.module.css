@@ -7,6 +7,15 @@
   border-bottom: 1px solid var(--md-outline-variant);
 }
 
+/* 영역 B' — 공연명 검색 줄 (§2.3a). 필터바 위, 데스크톱 우측 정렬. */
+.searchRow {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 32px 0;
+}
+
 .inner {
   display: flex;
   align-items: center;
@@ -267,5 +276,11 @@
   .inner {
     padding: 0 16px;
     height: 48px;
+  }
+
+  /* 모바일: 칩 요약 줄 위 풀폭 검색 입력(§2.3a). */
+  .searchRow {
+    justify-content: stretch;
+    padding: 8px 16px;
   }
 }

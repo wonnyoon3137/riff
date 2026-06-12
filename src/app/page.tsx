@@ -104,6 +104,7 @@ function HomeContent() {
         filter={filter}
         onChange={setFilter}
         onReset={resetFilter}
+        onFlush={flushFilter}
       />
       <ResultSummary
         totalCount={totalCount}
