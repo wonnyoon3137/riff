@@ -94,12 +94,12 @@ describe("filterToQuery / queryToFilter round-trip", () => {
     });
   });
 
-  it("restores sido label for code with gugun segment (#24)", () => {
+  it("restores gugun label for code with gugun segment (#24)", () => {
     const restored = queryToFilter(new URLSearchParams("region=11:1111"));
     expect(restored.regions[0]).toMatchObject({
       sidoCode: "11",
       gugunCode: "1111",
-      label: "서울특별시",
+      label: "서울 종로구",
     });
   });
 

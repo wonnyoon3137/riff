@@ -5,12 +5,19 @@ import type {
   PeriodPreset,
   SortOrder,
 } from "./types";
-import { GENRE_SLUG_MAP, GENRE_TO_SLUG, SIDO_LIST } from "./kopis-codes";
+import { GENRE_SLUG_MAP, GENRE_TO_SLUG, SIDO_LIST, GUGUN_MAP } from "./kopis-codes";
 
 // 시도 코드 -> 정식 명칭 역매핑 (#24). URL은 코드만 저장(단방향)하므로
 // 역직렬화 시 표시 라벨을 SIDO_LIST(검증표 §3)에서 복원한다.
 const SIDO_CODE_TO_NAME: Record<string, string> = Object.fromEntries(
   SIDO_LIST.map((s) => [s.code, s.name]),
+);
+
+// 구군 코드 -> 구군 명칭 역매핑 (URL 역직렬화 시 라벨 복원용).
+const GUGUN_CODE_TO_NAME: Record<string, string> = Object.fromEntries(
+  Object.values(GUGUN_MAP).flatMap((entries) =>
+    entries.map((e) => [e.code, e.name]),
+  ),
 );
 
 const MAX_RANGE_DAYS = 31;
@@ -133,10 +140,25 @@ export function queryToFilter(q: URLSearchParams): FilterState {
       const [sido, gugun] = seg.split(":");
       // 라벨은 URL에 없으므로 코드→정식 명칭으로 복원(#24).
       // 알 수 없는 코드는 코드 문자열을 폴백 라벨로 사용.
+      const sidoName = SIDO_CODE_TO_NAME[sido] ?? sido;
+      let label = sidoName;
+      if (gugun) {
+        const gugunName = GUGUN_CODE_TO_NAME[gugun];
+        if (gugunName) {
+          // Shorten sido prefix for chip display (e.g., "서울 종로구")
+          const short = sidoName
+            .replace(/특별자치도$/, "")
+            .replace(/특별자치시$/, "")
+            .replace(/특별시$/, "")
+            .replace(/광역시$/, "")
+            .replace(/도$/, "");
+          label = `${short} ${gugunName}`;
+        }
+      }
       return {
         sidoCode: sido,
         gugunCode: gugun || undefined,
-        label: SIDO_CODE_TO_NAME[sido] ?? sido,
+        label,
       };
     });
   }
