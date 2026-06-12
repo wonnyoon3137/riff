@@ -3,16 +3,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { ToastProvider } from "@/components/common/Toast";
+import { DEFAULT_QUERY_OPTIONS } from "@/lib/query-config";
 
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 30 * 60 * 1000, // 30 minutes
-        refetchOnWindowFocus: false,
-        retry: 1,
-      },
+      // 캐시 값/근거는 src/lib/query-config.ts (data-model §7.3 + kopis 캐싱 권장).
+      queries: DEFAULT_QUERY_OPTIONS,
     },
   });
 }
