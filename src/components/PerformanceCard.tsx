@@ -6,6 +6,7 @@ import styles from "./PerformanceCard.module.css";
 
 interface PerformanceCardProps {
   performance: PerformanceSummary;
+  onClick?: () => void;
 }
 
 function formatPeriod(from: string, to: string): string {
@@ -19,7 +20,10 @@ function formatPeriod(from: string, to: string): string {
   return `${f} \u2013 ${t}`;
 }
 
-export default function PerformanceCard({ performance }: PerformanceCardProps) {
+export default function PerformanceCard({
+  performance,
+  onClick,
+}: PerformanceCardProps) {
   const {
     id,
     title,
@@ -34,7 +38,7 @@ export default function PerformanceCard({ performance }: PerformanceCardProps) {
   const venueArea = [venueName, area].filter(Boolean).join(" \u00B7 ");
 
   return (
-    <Link href={`/performances/${id}`} className={styles.card}>
+    <Link href={`/performances/${id}`} className={styles.card} onClick={onClick}>
       <div className={styles.posterWrap}>
         {posterUrl ? (
           <Image

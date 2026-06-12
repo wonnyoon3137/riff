@@ -161,12 +161,14 @@ export default function FilterBar({
 
       {/* Mobile filter panel */}
       {mobileOpen && (
-        <div
-          className={styles.mobileOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setMobileOpen(false);
-          }}
-        >
+        <div className={styles.mobileOverlay}>
+          {/* 배경 클릭 닫기(마우스 보조 수단). 키보드 사용자는 닫기 버튼/Esc 사용.
+              aria-hidden 으로 AT 에서 숨김 — 다른 필터의 backdrop 컨벤션과 동일. */}
+          <div
+            className={styles.mobileBackdrop}
+            onClick={() => setMobileOpen(false)}
+            aria-hidden="true"
+          />
           <div className={styles.mobilePanel} role="dialog" aria-label="필터">
             <div className={styles.mobilePanelHeader}>
               <span className={styles.mobilePanelTitle}>필터</span>

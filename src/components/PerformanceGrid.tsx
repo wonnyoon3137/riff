@@ -55,9 +55,11 @@ export default function PerformanceGrid({
   return (
     <div className={styles.grid}>
       {items.map((item) => (
-        <div key={item.id} onClick={onCardClick}>
-          <PerformanceCard performance={item} />
-        </div>
+        <PerformanceCard
+          key={item.id}
+          performance={item}
+          onClick={onCardClick}
+        />
       ))}
 
       {hasNext && (
