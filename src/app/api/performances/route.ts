@@ -10,6 +10,7 @@ import {
   normalizeSearchTerm,
 } from "@/domain/filter-url";
 import { GENRE_TO_SHCATE } from "@/domain/kopis-codes";
+import { getPerformancesByArtist } from "@/server/artists/repo";
 import type { KopisPblprfrListItem } from "@/server/kopis/raw-types";
 import type { PerformanceListResponse, PerformanceSummary } from "@/domain/types";
 
@@ -46,6 +47,19 @@ export async function GET(request: NextRequest) {
     // 순수 AND(DEC-S1 옵션 A): 기간/지역/장르/정렬은 그대로 두고 shprfnm만 더한다.
     const shprfnm = normalizeSearchTerm(filter.searchTerm);
 
+    // 아티스트 필터 (F8): Artist DB에서 mt20id Set을 미리 조회.
+    // KOPIS에는 출연진 검색 파라미터가 없으므로 BFF 교차 필터(DEC-P3).
+    let artistMt20ids: Set<string> | null = null;
+    if (filter.artistId) {
+      try {
+        const pas = getPerformancesByArtist(filter.artistId);
+        artistMt20ids = new Set(pas.map((pa) => pa.mt20id));
+      } catch {
+        // Artist DB 에러 시 필터 무시 (graceful degradation)
+        artistMt20ids = null;
+      }
+    }
+
     if (filter.isNationwide || filter.regions.length === 0) {
       // 전국: 단일 호출
       const items = await fetchPerformances({
@@ -60,7 +74,11 @@ export async function GET(request: NextRequest) {
       const sorted = mergePerformances([items], filter.sort);
 
       // 다중 장르 필터 (KOPIS는 단일 shcate만 수용하므로 BFF에서 필터)
-      const filtered = filterByGenres(sorted, filter.genres);
+      let filtered = filterByGenres(sorted, filter.genres);
+      // 아티스트 교차 필터 (F8)
+      if (artistMt20ids) {
+        filtered = filtered.filter((p) => artistMt20ids!.has(p.id));
+      }
 
       return NextResponse.json<PerformanceListResponse>({
         items: filtered.slice(0, rows),
@@ -99,7 +117,11 @@ export async function GET(request: NextRequest) {
     );
 
     const merged = mergePerformances(regionResults, filter.sort);
-    const filtered = filterByGenres(merged, filter.genres);
+    let filtered = filterByGenres(merged, filter.genres);
+    // 아티스트 교차 필터 (F8)
+    if (artistMt20ids) {
+      filtered = filtered.filter((p) => artistMt20ids!.has(p.id));
+    }
     const { items, hasNext } = slicePage(filtered, page, rows);
 
     return NextResponse.json<PerformanceListResponse>({

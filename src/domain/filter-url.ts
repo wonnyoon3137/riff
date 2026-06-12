@@ -106,6 +106,11 @@ export function filterToQuery(f: FilterState): URLSearchParams {
     params.set("q", search);
   }
 
+  // 아티스트 (F8). 미선택 시 생략.
+  if (f.artistId) {
+    params.set("artist", f.artistId);
+  }
+
   return params;
 }
 
@@ -187,6 +192,12 @@ export function queryToFilter(q: URLSearchParams): FilterState {
   // 검색어 (F5.3 ?q=). 2자 미만은 비활성(undefined) (F5.4).
   base.searchTerm = normalizeSearchTerm(q.get("q"));
 
+  // 아티스트 (F8).
+  const artistParam = q.get("artist");
+  if (artistParam) {
+    base.artistId = artistParam;
+  }
+
   return base;
 }
 
@@ -205,6 +216,7 @@ export function isDefaultFilter(f: FilterState): boolean {
     f.genres.length === 0 &&
     !f.venueId &&
     !normalizeSearchTerm(f.searchTerm) &&
+    !f.artistId &&
     f.sort === def.sort
   );
 }
@@ -218,6 +230,7 @@ export function countActiveFilters(f: FilterState): number {
   if (f.genres.length > 0) count++;
   if (f.venueId) count++;
   if (normalizeSearchTerm(f.searchTerm)) count++;
+  if (f.artistId) count++;
   if (f.sort !== def.sort) count++;
   return count;
 }
@@ -235,6 +248,8 @@ export function filterHash(f: FilterState): string {
     f.sort,
     // 검색어별 캐시 분리 (F5.5). 2자 미만은 미전송과 동일(빈 문자열).
     normalizeSearchTerm(f.searchTerm) || "",
+    // 아티스트별 캐시 분리 (F8).
+    f.artistId || "",
   ];
   return parts.join("|");
 }
