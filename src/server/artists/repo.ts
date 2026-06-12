@@ -264,6 +264,39 @@ export function getPerformancesByArtist(
   return rows.map(rowToPerformanceArtist);
 }
 
+// ── 자동완성 검색 (F8) ────────────────────────────────────────
+
+/**
+ * 아티스트 이름/별칭 부분 일치 검색 (자동완성용, features.md F8).
+ * - query 2자 미만이면 빈 배열 반환.
+ * - name LIKE '%query%' OR aliases LIKE '%query%' (JSON TEXT 내 검색).
+ * - limit 기본 10.
+ */
+export function searchArtists(
+  query: string,
+  limit = 10,
+  database: Database.Database = getArtistDb(),
+): Artist[] {
+  const trimmed = query.trim();
+  if (trimmed.length < 2) return [];
+
+  // LIKE 와일드카드(% _) 및 이스케이프 문자를 리터럴로 처리.
+  const escaped = trimmed.replace(/[\\%_]/g, (c) => `\\${c}`);
+  const pattern = `%${escaped}%`;
+
+  const rows = database
+    .prepare(
+      `SELECT * FROM artists
+       WHERE name LIKE @pattern ESCAPE '\\'
+          OR aliases LIKE @pattern ESCAPE '\\'
+       ORDER BY length(name) ASC, name ASC
+       LIMIT @limit`,
+    )
+    .all({ pattern, limit }) as ArtistRow[];
+
+  return rows.map(rowToArtist);
+}
+
 // ── 추가 조회/갱신 (CLI 스크립트용) ──────────────────────────
 
 /** ID(숫자 문자열)로 아티스트 조회. */
