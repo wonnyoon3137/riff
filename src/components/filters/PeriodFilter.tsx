@@ -3,7 +3,11 @@
 import { useCallback, useState } from "react";
 import type { FilterState, PeriodPreset } from "@/domain/types";
 import { presetToRange, isRangeExceeded, clampRange } from "@/domain/filter-url";
+import { useToast } from "@/components/common/Toast";
 import styles from "./PeriodFilter.module.css";
+
+/** D3 / screens.md §B-1: 31일 초과 보정 안내 토스트 메시지 */
+const PERIOD_LIMIT_MESSAGE = "최대 31일까지 선택 가능합니다";
 
 interface PeriodFilterProps {
   filter: FilterState;
@@ -34,6 +38,7 @@ function CheckIcon() {
 }
 
 export default function PeriodFilter({ filter, onChange }: PeriodFilterProps) {
+  const { showToast } = useToast();
   const [showDateInputs, setShowDateInputs] = useState(
     filter.period.preset === "CUSTOM",
   );
@@ -71,8 +76,8 @@ export default function PeriodFilter({ filter, onChange }: PeriodFilterProps) {
       const newRange = { ...filter.period.range, [field]: value };
 
       if (isRangeExceeded(newRange)) {
-        alert("최대 31일까지 선택 가능합니다");
         const clamped = clampRange(newRange);
+        showToast(PERIOD_LIMIT_MESSAGE);
         onChange({
           ...filter,
           period: { preset: "CUSTOM", range: clamped },
@@ -85,7 +90,7 @@ export default function PeriodFilter({ filter, onChange }: PeriodFilterProps) {
         period: { preset: "CUSTOM", range: newRange },
       });
     },
-    [filter, onChange],
+    [filter, onChange, showToast],
   );
 
   return (
