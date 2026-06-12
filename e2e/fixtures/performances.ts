@@ -49,6 +49,19 @@ const REGION_ITEMS: Record<string, PerformanceSummary[]> = {
   ],
 };
 
+/** 구군코드별 아이템 (구군 드릴다운 검증용, v4 #45) */
+const GUGUN_ITEMS: Record<string, PerformanceSummary[]> = {
+  // 서울 강남구(1168)
+  "1168": [
+    summary("GANGNAM-1", "강남 공연 A", { area: "서울" }),
+    summary("GANGNAM-2", "강남 공연 B", { area: "서울" }),
+  ],
+  // 서울 서초구(1165)
+  "1165": [
+    summary("SEOCHO-1", "서초 공연 A", { area: "서울" }),
+  ],
+};
+
 /** 전국(지역 미지정) 기본 목록 — D8/필터→상세 플로우용. 페이지네이션 지원. */
 const NATIONWIDE_PAGE_1: PerformanceSummary[] = Array.from(
   { length: 30 },
@@ -132,9 +145,23 @@ export async function mockPerformanceApi(page: Page): Promise<void> {
     }
 
     if (regionParam) {
-      // D4: 여러 시도코드 병합 (중복제거는 BFF 책임이지만 픽스처는 고유 id만 제공)
-      const codes = regionParam.split(",").map((seg) => seg.split(":")[0]);
-      const merged = codes.flatMap((code) => REGION_ITEMS[code] ?? []);
+      // D4: 여러 시도/구군코드 병합 (중복제거는 BFF 책임이지만 픽스처는 고유 id만 제공)
+      // 구군 드릴다운(v4): "11:1168" 형식이면 구군 아이템을 먼저 탐색, 없으면 시도 폴백.
+      const segments = regionParam.split(",");
+      const merged: PerformanceSummary[] = [];
+      const seenIds = new Set<string>();
+      for (const seg of segments) {
+        const [sido, gugun] = seg.split(":");
+        const items = gugun
+          ? (GUGUN_ITEMS[gugun] ?? REGION_ITEMS[sido] ?? [])
+          : (REGION_ITEMS[sido] ?? []);
+        for (const item of items) {
+          if (!seenIds.has(item.id)) {
+            seenIds.add(item.id);
+            merged.push(item);
+          }
+        }
+      }
       await route.fulfill({
         json: listResponse(merged, 1, false, merged.length),
       });
@@ -159,12 +186,14 @@ function findKnownSummary(id: string): PerformanceSummary | undefined {
     ...NATIONWIDE_PAGE_1,
     ...NATIONWIDE_PAGE_2,
     ...Object.values(REGION_ITEMS).flat(),
+    ...Object.values(GUGUN_ITEMS).flat(),
   ];
   return all.find((s) => s.id === id);
 }
 
 export const fixtures = {
   REGION_ITEMS,
+  GUGUN_ITEMS,
   NATIONWIDE_PAGE_1,
   NATIONWIDE_PAGE_2,
 };
