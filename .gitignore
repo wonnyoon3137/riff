@@ -48,6 +48,8 @@ pnpm-debug.log*
 *.sqlite
 *.sqlite3
 /data/
+# 측정 입력 데이터셋은 추적
+!/data/mb-test-artists.json
 
 # npm lock (this is a pnpm project)
 package-lock.json
