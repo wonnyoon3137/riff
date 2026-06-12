@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { Performance } from "@/domain/types";
+import { DETAIL_GC_TIME, DETAIL_STALE_TIME } from "@/lib/query-config";
 
 async function fetchPerformanceDetail(
   mt20id: string,
@@ -18,5 +19,8 @@ export function usePerformanceDetail(mt20id: string) {
     queryKey: ["performance", mt20id],
     queryFn: () => fetchPerformanceDetail(mt20id),
     enabled: !!mt20id,
+    // 상세는 거의 불변 → 길게 캐시(kopis "상세 30~60분", query-config 참조).
+    staleTime: DETAIL_STALE_TIME,
+    gcTime: DETAIL_GC_TIME,
   });
 }
