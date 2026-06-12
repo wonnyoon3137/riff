@@ -1,0 +1,40 @@
+/* PriceBandChip — M3 tonal chip for price band */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--md-radius-pill);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* FREE / UNDER_30K: accent-teal on light tint */
+.free {
+  background-color: color-mix(in srgb, var(--md-accent-teal) 14%, transparent);
+  color: var(--md-accent-teal);
+}
+
+.under30k {
+  background-color: color-mix(in srgb, var(--md-accent-teal) 14%, transparent);
+  color: var(--md-accent-teal);
+}
+
+/* UNDER_70K: primary container tonal */
+.under70k {
+  background-color: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
+
+/* OVER_70K: accent-amber on light tint */
+.over70k {
+  background-color: color-mix(in srgb, var(--md-accent-amber) 14%, transparent);
+  color: var(--md-accent-amber);
+}
+
+/* VARIABLE: surface-variant (neutral) */
+.variable {
+  background-color: var(--md-surface-container);
+  color: var(--md-on-surface-variant);
+}

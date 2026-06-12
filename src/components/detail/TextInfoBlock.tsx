@@ -1,9 +1,12 @@
+import type { ReactNode } from "react";
 import type { ProducerInfo } from "@/domain/types";
 import styles from "./TextInfoBlock.module.css";
 
 interface TextSectionProps {
   title: string;
   content: string;
+  /** Optional chip displayed next to the heading */
+  chip?: ReactNode;
 }
 
 interface ProducerSectionProps {
@@ -11,10 +14,13 @@ interface ProducerSectionProps {
 }
 
 /** Generic text section (cast, story, price) with whitespace preservation */
-export function TextSection({ title, content }: TextSectionProps) {
+export function TextSection({ title, content, chip }: TextSectionProps) {
   return (
     <section className={styles.container}>
-      <h2 className={styles.heading}>{title}</h2>
+      <div className={styles.headingRow}>
+        <h2 className={styles.heading}>{title}</h2>
+        {chip}
+      </div>
       <p className={styles.body}>{content}</p>
     </section>
   );

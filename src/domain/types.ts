@@ -74,6 +74,7 @@ export interface Performance extends PerformanceSummary {
   producers?: ProducerInfo;
   introImages: IntroImage[];
   bookings: BookingRelate[];
+  matchedArtists?: MatchedArtist[]; // v3 F7: BFF에서 매칭된 출연 아티스트
 }
 
 // ── 공연장(Venue) ─────────────────────────────────────────
@@ -129,6 +130,38 @@ export interface ListRestoreState {
   loadedPages: number;
   totalCount?: number;
   savedAt: number; // epoch ms
+}
+
+// ── 아티스트 (v3 P2) ─────────────────────────────────────
+/** 아티스트 마스터 (자체 DB, data-model §3.5 / §5.5) */
+export interface Artist {
+  id: string; // auto-increment (SQLite INTEGER → string으로 노출)
+  name: string; // 대표 이름 (정규화된 표기)
+  aliases?: string[]; // 표기 변형 ("BTS", "방탄소년단")
+  mbid?: string; // MusicBrainz Artist ID
+  matchConfidence?: number; // 외부 API 매칭 신뢰도 (0~1)
+  isManuallyVerified: boolean; // 수동 보정 완료 여부
+  meta?: Record<string, unknown>; // 확장용 메타
+  createdAt: string; // ISO datetime
+  updatedAt: string; // ISO datetime
+}
+
+/** 공연<->아티스트 출연 관계 (자체 DB, data-model §3.5 / §5.5) */
+export interface PerformanceArtist {
+  mt20id: string; // 공연 KOPIS ID
+  artistId: string; // Artist.id
+  rawExtract: string; // prfcast에서 추출한 원문 발췌
+  role?: string; // 역할(배역)
+  extractedAt: string; // ISO datetime
+}
+
+// ── 매칭 아티스트 (BFF 상세 응답용, v3 F7) ──────────────
+/** BFF 상세 응답에 포함되는 매칭된 아티스트 정보 */
+export interface MatchedArtist {
+  id: string;
+  name: string;
+  role?: string;
+  rawExtract: string;
 }
 
 // ── BFF 응답 ──────────────────────────────────────────────

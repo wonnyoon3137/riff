@@ -74,20 +74,25 @@ export async function GET(request: NextRequest) {
     // 다중 지역 (D4): 지역별 KOPIS 페이지 경계와 전역 병합 경계가 어긋나
     // page>1 에서 항목이 누락된다(#21). 각 지역을 cpage=1..page 까지 누적 fetch한 뒤
     // 전역 병합·dedup·정렬하고 slicePage(merged, page, rows)로 전역 오프셋을 자른다.
-    const regionCodes = filter.regions.map((r) => r.sidoCode);
+    // 각 RegionSelection은 signgucode(시도) + signgucodesub(구군, optional)을 개별 호출한다.
+    const regionEntries = filter.regions.map((r) => ({
+      signgucode: r.sidoCode,
+      signgucodesub: r.gugunCode,
+    }));
 
     // 호출 수가 N(지역) × page 까지 늘 수 있으므로 동시성 상한으로 batch 분할(§7.2).
     const regionResults = await mapWithConcurrency(
-      regionCodes,
+      regionEntries,
       REGION_FETCH_CONCURRENCY,
-      (signgucode) =>
+      (entry) =>
         fetchRegionUpToPage({
           stdate,
           eddate,
           page,
           rows,
           shcate,
-          signgucode,
+          signgucode: entry.signgucode,
+          signgucodesub: entry.signgucodesub,
           venueId: filter.venueId,
           shprfnm,
         }),
@@ -136,6 +141,7 @@ async function fetchPerformances(params: {
   rows: number;
   shcate?: string;
   signgucode?: string;
+  signgucodesub?: string;
   venueId?: string;
   shprfnm?: string;
 }): Promise<PerformanceSummary[]> {
@@ -146,6 +152,7 @@ async function fetchPerformances(params: {
     rows: params.rows,
     shcate: params.shcate,
     signgucode: params.signgucode,
+    signgucodesub: params.signgucodesub,
     prfplccd: params.venueId,
     shprfnm: params.shprfnm,
   });
@@ -164,6 +171,7 @@ async function fetchRegionUpToPage(params: {
   rows: number;
   shcate?: string;
   signgucode: string;
+  signgucodesub?: string;
   venueId?: string;
   shprfnm?: string;
 }): Promise<PerformanceSummary[]> {
@@ -177,6 +185,7 @@ async function fetchRegionUpToPage(params: {
       rows: params.rows,
       shcate: params.shcate,
       signgucode: params.signgucode,
+      signgucodesub: params.signgucodesub,
       venueId: params.venueId,
       shprfnm: params.shprfnm,
     });
