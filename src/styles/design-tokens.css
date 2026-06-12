@@ -21,6 +21,10 @@
   --md-on-surface-variant: #5F5E6B;
   --md-outline-variant: rgba(83, 74, 183, 0.20);
 
+  /* Inverse — 토스트/스낵바 (M3 inverse role) */
+  --md-inverse-surface: #313036;
+  --md-inverse-on-surface: #F3EFFA;
+
   /* 공연 상태(prfstate) 뱃지 */
   --md-state-ongoing: #0F6E56;            /* 틸 — 공연중 */
   --md-state-upcoming: #534AB7;           /* 퍼플 — 공연예정 */
@@ -51,6 +55,9 @@
     --md-on-surface: #E7E5F2;
     --md-on-surface-variant: #B0AEC0;
     --md-outline-variant: rgba(175, 169, 236, 0.24);
+
+    --md-inverse-surface: #E7E5F2;
+    --md-inverse-on-surface: #2F2D38;
 
     --md-state-ongoing: #5DCAA5;
     --md-state-upcoming: #AFA9EC;

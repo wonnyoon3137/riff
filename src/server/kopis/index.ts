@@ -10,3 +10,4 @@ export {
   toGenre,
 } from "./normalize";
 export { mergePerformances, slicePage } from "./merge";
+export { mapWithConcurrency } from "./concurrency";

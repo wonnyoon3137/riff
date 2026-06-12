@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      // D3/T-08: alert 금지 — 인라인 토스트(useToast) 사용
+      "no-alert": "error",
+    },
+  },
 ];
 
 export default eslintConfig;
