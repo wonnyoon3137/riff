@@ -1,5 +1,6 @@
 import type { Page, Route } from "@playwright/test";
 import type {
+  MatchedArtist,
   Performance,
   PerformanceListResponse,
   PerformanceSummary,
@@ -62,6 +63,38 @@ const GUGUN_ITEMS: Record<string, PerformanceSummary[]> = {
   ],
 };
 
+// ── 아티스트 관련 픽스처 (F8 아티스트 필터 E2E, v4 #60) ──────────
+interface ArtistSearchItem {
+  id: string;
+  name: string;
+  aliases?: string[];
+}
+
+const ARTISTS: ArtistSearchItem[] = [
+  { id: "artist-1", name: "홍길동", aliases: ["길동"] },
+  { id: "artist-2", name: "김철수" },
+  { id: "artist-3", name: "홍길순" },
+];
+
+/** 아티스트 ID -> 출연 공연 ID 집합. BFF 교차 필터 시뮬레이션. */
+const ARTIST_PERFORMANCES: Record<string, Set<string>> = {
+  "artist-1": new Set(["PERF-001", "PERF-003", "PERF-005"]),
+  "artist-2": new Set(["PERF-002", "PERF-004"]),
+};
+
+/** 상세 응답에 포함할 matchedArtists (공연 ID → 매칭 아티스트). */
+const DETAIL_MATCHED_ARTISTS: Record<string, MatchedArtist[]> = {
+  "PERF-001": [
+    { id: "artist-1", name: "홍길동", role: "주연", rawExtract: "홍길동" },
+  ],
+  "PERF-003": [
+    { id: "artist-1", name: "홍길동", role: "조연", rawExtract: "홍길동" },
+  ],
+  "PERF-002": [
+    { id: "artist-2", name: "김철수", role: "주연", rawExtract: "김철수" },
+  ],
+};
+
 /** 전국(지역 미지정) 기본 목록 — D8/필터→상세 플로우용. 페이지네이션 지원. */
 const NATIONWIDE_PAGE_1: PerformanceSummary[] = Array.from(
   { length: 30 },
@@ -91,6 +124,7 @@ function detailFor(id: string, title: string): Performance {
     priceGuidance: "R석 100,000원 / S석 80,000원",
     introImages: [],
     bookings: [{ name: "인터파크", url: "https://example.com/booking" }],
+    matchedArtists: DETAIL_MATCHED_ARTISTS[id] ?? [],
   };
 }
 
@@ -133,11 +167,22 @@ export async function mockPerformanceApi(page: Page): Promise<void> {
     const regionParam = url.searchParams.get("region");
     const pageNum = Number(url.searchParams.get("page")) || 1;
     const qParam = url.searchParams.get("q");
+    const artistParam = url.searchParams.get("artist");
+
+    // F8: 아티스트 교차 필터 헬퍼
+    const applyArtistFilter = (items: PerformanceSummary[]): PerformanceSummary[] => {
+      if (!artistParam) return items;
+      const ids = ARTIST_PERFORMANCES[artistParam];
+      if (!ids) return [];
+      return items.filter((s) => ids.has(s.id));
+    };
 
     // F5: 공연명 검색(?q=). BFF가 q>=2자일 때만 부착하므로 픽스처도 동일 가정.
     // 제목 부분일치로 필터(전국 풀에서). 결과는 단일 페이지로 응답.
     if (qParam) {
-      const matched = NATIONWIDE_PAGE_1.filter((s) => s.title.includes(qParam));
+      const matched = applyArtistFilter(
+        NATIONWIDE_PAGE_1.filter((s) => s.title.includes(qParam)),
+      );
       await route.fulfill({
         json: listResponse(matched, 1, false, matched.length),
       });
@@ -162,8 +207,19 @@ export async function mockPerformanceApi(page: Page): Promise<void> {
           }
         }
       }
+      const regionFiltered = applyArtistFilter(merged);
       await route.fulfill({
-        json: listResponse(merged, 1, false, merged.length),
+        json: listResponse(regionFiltered, 1, false, regionFiltered.length),
+      });
+      return;
+    }
+
+    // F8: 아티스트 필터 단독 (전국)
+    if (artistParam) {
+      const all = [...NATIONWIDE_PAGE_1, ...NATIONWIDE_PAGE_2];
+      const filtered = applyArtistFilter(all);
+      await route.fulfill({
+        json: listResponse(filtered, 1, false, filtered.length),
       });
       return;
     }
@@ -178,6 +234,26 @@ export async function mockPerformanceApi(page: Page): Promise<void> {
     await route.fulfill({
       json: listResponse(NATIONWIDE_PAGE_1, 1, true, 60),
     });
+  });
+}
+
+/**
+ * `/api/artists/search?q=` 호출을 픽스처로 응답한다 (F8 아티스트 자동완성).
+ */
+export async function mockArtistSearchApi(page: Page): Promise<void> {
+  await page.route("**/api/artists/search**", async (route: Route) => {
+    const url = new URL(route.request().url());
+    const q = url.searchParams.get("q")?.trim() ?? "";
+    if (q.length < 2) {
+      await route.fulfill({ json: { items: [] } });
+      return;
+    }
+    const matched = ARTISTS.filter(
+      (a) =>
+        a.name.includes(q) ||
+        (a.aliases?.some((alias) => alias.includes(q)) ?? false),
+    );
+    await route.fulfill({ json: { items: matched } });
   });
 }
 
@@ -196,4 +272,7 @@ export const fixtures = {
   GUGUN_ITEMS,
   NATIONWIDE_PAGE_1,
   NATIONWIDE_PAGE_2,
+  ARTISTS,
+  ARTIST_PERFORMANCES,
+  DETAIL_MATCHED_ARTISTS,
 };
