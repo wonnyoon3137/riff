@@ -36,7 +36,7 @@
 2. **자유 텍스트 원문 보존.** `prfcast`(출연진), `pcseguidance`(티켓가격) 등 KOPIS가 자유 텍스트로 주는 필드는 **v0.1에서 파싱하지 않고 원문 문자열을 그대로 보존**한다(∴ 기획서 Risk 2, features F3.1). 구조화는 v0.2 자체 인덱스 단계로 이관.
 3. **null 안전.** KOPIS는 필드 누락/빈 문자열이 잦다. 도메인 타입에서 선택 필드는 `?`(optional) 또는 명시적 `null`로 표현하고, 정규화 시 빈 문자열은 `undefined`로 정리한다.
 4. **단일 식별자.** 공연 식별자는 `mt20id`, 공연장 식별자는 `mt10id`를 내부 PK로 사용한다(KOPIS 키 그대로). 자체 PK를 새로 만들지 않는다(v0.1).
-5. **v0.1 비저장 원칙.** 공연 데이터는 **저장하지 않고** 매 요청 시 KOPIS에서 조회(필요 시 캐시). **예외: 공연장 마스터(Venue, D5)와 아티스트 마스터(Artist, v3)** 를 자체 DB에 저장. 이 자체 DB가 v0.2 자체 인덱스의 기반이 된다.
+5. **v0.1 비저장 원칙.** 공연 데이터는 **저장하지 않고** 매 요청 시 KOPIS에서 조회(필요 시 캐시). **예외: 공연장 마스터(Venue, D5), 아티스트 마스터(Artist, v3), 사용자 계정(User/Account/Session, v5 P4)** 을 자체 DB에 저장. 이 자체 DB가 v0.2 자체 인덱스의 기반이 된다.
 
 ---
 
@@ -51,6 +51,9 @@
 | `IntroImage` | 소개 이미지 (상세 `styurls`) | KOPIS 상세 | 비저장 |
 | `Artist` | 아티스트(출연자). 하이브리드 수집(prfcast 추출+MusicBrainz 매칭+수동 보정) | KOPIS prfcast + MusicBrainz | **자체 DB 저장(v3)** |
 | `PerformanceArtist` | 공연↔아티스트 출연 관계 | prfcast 추출 파이프라인 | **자체 DB 저장(v3)** |
+| `User` | 사용자 계정. 소셜 OAuth(카카오/구글) | Auth.js OAuth | **자체 DB 저장(v5)** |
+| `Account` | OAuth provider 연결 정보 (Auth.js adapter) | Auth.js | **자체 DB 저장(v5)** |
+| `Session` | 로그인 세션 (Auth.js adapter) | Auth.js | **자체 DB 저장(v5)** |
 | `FilterState` | 사용자가 선택한 필터 상태 | 클라이언트 | URL/세션 |
 | `ListState` | 목록 화면 복원용 상태(스크롤/페이지/필터) | 클라이언트 | 세션(채택안 §7) |
 
