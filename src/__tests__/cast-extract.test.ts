@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractCastNames, type CastExtraction } from "@/domain/cast-extract";
+import { extractCastNames } from "@/domain/cast-extract";
 
 // ── 기본 구분자 ─────────────────────────────────────────────
 

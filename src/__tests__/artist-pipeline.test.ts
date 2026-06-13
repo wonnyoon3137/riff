@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import Database from "better-sqlite3";
 import {
   processPerformanceCast,
   syncPerformancesCast,
@@ -7,7 +6,6 @@ import {
 import type { PipelineResult, SyncResult } from "@/server/artists/pipeline";
 import {
   getArtistDb,
-  getArtistsByPerformance,
 } from "@/server/artists/repo";
 import { _resetRateLimitState } from "@/server/artists/musicbrainz";
 
@@ -56,10 +54,8 @@ function createMockFetch(
 // ── 테스트 ──────────────────────────────────────────────────
 
 describe("artist pipeline", () => {
-  let db: Database.Database;
-
   beforeEach(() => {
-    db = getArtistDb(":memory:");
+    getArtistDb(":memory:");
     _resetRateLimitState();
   });
 
@@ -120,7 +116,6 @@ describe("artist pipeline", () => {
       // DB 조회 검증 — 같은 :memory: DB를 공유하므로 별도 db 인스턴스가 필요
       // pipeline 내부에서 getArtistDb(":memory:")로 생성된 DB를 사용하므로
       // 여기서도 동일한 방식으로 검증
-      const dbForCheck = getArtistDb(":memory:");
       // 주의: :memory:는 호출마다 새 DB이므로, 아래는 pipeline 내부 result로 검증
       expect(result.artists[0].name).toBe("홍길동");
       expect(result.artists[0].mbid).toBe("mbid-홍길동");

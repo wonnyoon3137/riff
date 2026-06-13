@@ -78,11 +78,6 @@ export default function RegionFilter({ filter, onChange }: RegionFilterProps) {
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedCodes = useMemo(
-    () => new Set(filter.regions.map((r) => r.gugunCode ?? r.sidoCode)),
-    [filter.regions],
-  );
-
   // Set of sido codes that have ANY selection (sido-level or gugun-level)
   const selectedSidoCodes = useMemo(
     () => new Set(filter.regions.map((r) => r.sidoCode)),
