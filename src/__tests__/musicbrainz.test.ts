@@ -151,7 +151,7 @@ describe("searchArtist", () => {
     expect(parsedUrl.searchParams.get("limit")).toBe("5");
 
     // User-Agent 헤더 검증
-    expect((options as RequestInit).headers).toEqual(
+    expect((options as { headers: Record<string, string> }).headers).toEqual(
       expect.objectContaining({
         "User-Agent": expect.stringContaining("Riff/"),
       }),

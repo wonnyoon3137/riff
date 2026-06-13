@@ -54,7 +54,6 @@ loadEnvFile(".env.local");
 loadEnvFile(".env");
 
 // git worktree 환경: 메인 레포 루트의 .env 폴백
-const worktreeMarker = resolve(process.cwd(), ".claude");
 if (!process.env.KOPIS_SERVICE_KEY) {
   // .claude/worktrees/<id> 패턴 감지 → 3단계 상위가 메인 레포
   const cwd = process.cwd();
