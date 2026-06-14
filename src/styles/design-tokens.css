@@ -38,6 +38,14 @@
   /* Shape */
   --md-radius-card: 12px;
   --md-radius-pill: 999px;
+
+  /* Brand (소셜 OAuth 버튼용 — 외부 브랜드 색상, SSOT) */
+  --brand-kakao: #FEE500;
+  --brand-kakao-text: #191919;
+  --brand-google-blue: #4285F4;
+  --brand-google-green: #34A853;
+  --brand-google-yellow: #FBBC05;
+  --brand-google-red: #EA4335;
 }
 
 /* 다크 모드 — v0.2 비목표이나 role 기반이라 토글만으로 확장 가능 */
