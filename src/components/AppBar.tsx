@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import styles from "./AppBar.module.css";
 
 interface AppBarProps {
@@ -12,7 +13,10 @@ interface AppBarProps {
 
 export default function AppBar({ showBack = false }: AppBarProps) {
   const [scrolled, setScrolled] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     function handleScroll() {
@@ -22,6 +26,18 @@ export default function AppBar({ showBack = false }: AppBarProps) {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownOpen]);
 
   const className = [
     styles.appBar,
@@ -65,6 +81,56 @@ export default function AppBar({ showBack = false }: AppBarProps) {
           />
           <span className={styles.brandName}>Riff</span>
         </Link>
+
+        <div className={styles.authArea}>
+          {status === "unauthenticated" && (
+            <Link href="/login" className={styles.loginButton}>
+              로그인
+            </Link>
+          )}
+          {status === "authenticated" && session?.user && (
+            <div className={styles.profileWrapper} ref={dropdownRef}>
+              <button
+                type="button"
+                className={styles.profileButton}
+                onClick={() => setDropdownOpen((v) => !v)}
+                aria-haspopup="true"
+                aria-expanded={dropdownOpen}
+                aria-label={`${session.user.name ?? "프로필"} 메뉴`}
+              >
+                {session.user.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className={styles.avatar}
+                  />
+                ) : (
+                  <span className={styles.avatarFallback}>
+                    {(session.user.name ?? "?")[0]}
+                  </span>
+                )}
+                <span className={styles.userName}>{session.user.name}</span>
+              </button>
+              {dropdownOpen && (
+                <div className={styles.dropdown} role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.dropdownItem}
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
