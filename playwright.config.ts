@@ -14,7 +14,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // P5-2 이후 ArtistChip(client component)이 추가한 useSession 호출로
+  // 병렬 실행 시 Next.js dev 서버 부하가 증가했다. 로컬도 2 worker로 제한한다.
+  workers: process.env.CI ? 1 : 2,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: BASE_URL,
@@ -39,6 +41,9 @@ export default defineConfig({
     env: {
       KOPIS_BASE_URL: process.env.KOPIS_BASE_URL ?? "http://kopis.invalid",
       KOPIS_SERVICE_KEY: process.env.KOPIS_SERVICE_KEY ?? "e2e-dummy-key",
+      // P5-2 authorized 콜백 추가 이후 middleware가 AUTH_SECRET을 요구.
+      // CI에서는 실제 시크릿을 주입. 로컬은 .env에서 읽힘.
+      AUTH_SECRET: process.env.AUTH_SECRET ?? "riff-e2e-dummy-secret",
     },
   },
 });
