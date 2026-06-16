@@ -1,0 +1,41 @@
+/* S4 — Following 목록 페이지 (M3 토큰만 사용) */
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+}
+
+.chipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chipItem {
+  display: inline-flex;
+}
+
+.message {
+  margin: 48px 0;
+  text-align: center;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--md-on-surface-variant);
+}
+
+@media (max-width: 599px) {
+  .main {
+    padding: 16px 16px 32px;
+  }
+}

@@ -23,6 +23,15 @@ export const authConfig = {
     signIn: "/login",
   },
   callbacks: {
+    // 보호 경로 접근 제어(middleware에서 평가). 비로그인의 /following 접근은
+    // false 반환 시 Auth.js가 signIn 페이지(/login)로 redirect한다(F10.2).
+    authorized({ auth: session, request }) {
+      const { pathname } = request.nextUrl;
+      if (pathname.startsWith("/following")) {
+        return Boolean(session?.user);
+      }
+      return true;
+    },
     // JWT 전략: token.sub(=user id)를 session.user.id로 노출.
     // BFF(예: /api/follows)에서 인증 사용자 식별에 사용.
     session({ session, token }) {
