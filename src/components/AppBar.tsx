@@ -115,6 +115,14 @@ export default function AppBar({ showBack = false }: AppBarProps) {
               </button>
               {dropdownOpen && (
                 <div className={styles.dropdown} role="menu">
+                  <Link
+                    href="/following"
+                    role="menuitem"
+                    className={styles.dropdownItem}
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    팔로잉 목록
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"
