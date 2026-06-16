@@ -22,4 +22,14 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  callbacks: {
+    // JWT 전략: token.sub(=user id)를 session.user.id로 노출.
+    // BFF(예: /api/follows)에서 인증 사용자 식별에 사용.
+    session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    },
+  },
 } satisfies NextAuthConfig;

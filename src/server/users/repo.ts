@@ -58,6 +58,16 @@ function initSchema(database: Database.Database): void {
       ON accounts (user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id
       ON sessions (user_id);
+
+    CREATE TABLE IF NOT EXISTS follows (
+      user_id    TEXT    NOT NULL,
+      artist_id  INTEGER NOT NULL,
+      created_at TEXT    NOT NULL,
+      PRIMARY KEY (user_id, artist_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_follows_user_id
+      ON follows (user_id);
   `);
 }
 
@@ -316,6 +326,69 @@ export function deleteSession(
   database
     .prepare("DELETE FROM sessions WHERE session_token = ?")
     .run(sessionToken);
+}
+
+// ── Follows CRUD (v6 P5, data-model §9) ─────────────────────
+//
+// follows.artist_id 는 artists.id 를 가리키지만, artists 마스터는
+// 별도 DB 파일(artists.db)에 있어 SQLite 교차 파일 FK 를 강제할 수 없다.
+// 따라서 artist_id FK 는 선언하지 않고, 이름 해석은 라우트에서
+// artists repo 로 별도 조회한다(data-model §9.1의 artist FK 는 논리 제약).
+
+export interface FollowRow {
+  user_id: string;
+  artist_id: number;
+  created_at: string;
+}
+
+/** 팔로우 여부 확인. */
+export function isFollowing(
+  userId: string,
+  artistId: number,
+  database: Database.Database = getUserDb(),
+): boolean {
+  const row = database
+    .prepare("SELECT 1 AS x FROM follows WHERE user_id = ? AND artist_id = ?")
+    .get(userId, artistId) as { x: number } | undefined;
+  return row !== undefined;
+}
+
+/** 팔로우한 artist_id 목록(created_at DESC). */
+export function getFollowedArtistIds(
+  userId: string,
+  database: Database.Database = getUserDb(),
+): number[] {
+  const rows = database
+    .prepare(
+      "SELECT artist_id FROM follows WHERE user_id = ? ORDER BY created_at DESC",
+    )
+    .all(userId) as { artist_id: number }[];
+  return rows.map((r) => r.artist_id);
+}
+
+/** 팔로우 추가(멱등 — 중복 시 무시). */
+export function followArtist(
+  userId: string,
+  artistId: number,
+  database: Database.Database = getUserDb(),
+): void {
+  database
+    .prepare(
+      `INSERT OR IGNORE INTO follows (user_id, artist_id, created_at)
+       VALUES (?, ?, ?)`,
+    )
+    .run(userId, artistId, new Date().toISOString());
+}
+
+/** 언팔로우(멱등 — 없으면 no-op). */
+export function unfollowArtist(
+  userId: string,
+  artistId: number,
+  database: Database.Database = getUserDb(),
+): void {
+  database
+    .prepare("DELETE FROM follows WHERE user_id = ? AND artist_id = ?")
+    .run(userId, artistId);
 }
 
 // ── 유틸 ────────────────────────────────────────────────────

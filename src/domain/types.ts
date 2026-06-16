@@ -147,6 +147,12 @@ export interface Artist {
   updatedAt: string; // ISO datetime
 }
 
+/** 아티스트 요약 (Following 목록 응답용, v6 P5 / data-model §9) */
+export interface ArtistSummary {
+  id: number; // artists.id (SQLite INTEGER)
+  name: string; // 대표 이름
+}
+
 /** 공연<->아티스트 출연 관계 (자체 DB, data-model §3.5 / §5.5) */
 export interface PerformanceArtist {
   mt20id: string; // 공연 KOPIS ID
