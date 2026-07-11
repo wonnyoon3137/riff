@@ -1,0 +1,71 @@
+/* S5 — Following Feed 페이지 (M3 토큰만 사용) */
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+  color: var(--md-on-surface);
+}
+
+/* 공연 카드 그리드 (S1 패턴 재사용) */
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.gridItem {
+  display: contents;
+}
+
+/* 빈/로딩/에러 메시지 */
+.message {
+  margin: 48px 0 16px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--md-on-surface-variant);
+}
+
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.emptyLink {
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 20px;
+  background-color: var(--md-primary);
+  color: var(--md-on-primary);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.emptyLink:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 599px) {
+  .main {
+    padding: 16px 16px 32px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}

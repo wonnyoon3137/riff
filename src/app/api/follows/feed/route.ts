@@ -19,6 +19,8 @@ const FEED_PERIOD_COUNT = 3; // 기간 수 (30×3 = 90일)
 
 export interface FollowingFeedResponse {
   performances: PerformanceSummary[];
+  /** 팔로잉 아티스트가 1명 이상 있는지 여부. UI 빈 상태 2종 구분에 사용. */
+  hasFollowedArtists: boolean;
 }
 
 function addDays(base: Date, days: number): Date {
@@ -50,7 +52,10 @@ export async function GET(): Promise<NextResponse> {
   // 1. 팔로잉 artist_ids
   const artistIds = getFollowedArtistIds(userId);
   if (artistIds.length === 0) {
-    return NextResponse.json<FollowingFeedResponse>({ performances: [] });
+    return NextResponse.json<FollowingFeedResponse>({
+      performances: [],
+      hasFollowedArtists: false,
+    });
   }
 
   // 2. artist별 mt20ids 수집 → Set
@@ -64,7 +69,10 @@ export async function GET(): Promise<NextResponse> {
     }
   }
   if (mt20idSet.size === 0) {
-    return NextResponse.json<FollowingFeedResponse>({ performances: [] });
+    return NextResponse.json<FollowingFeedResponse>({
+      performances: [],
+      hasFollowedArtists: true,
+    });
   }
 
   // 3. 오늘 ~ +90일을 3개 기간(30일씩)으로 분할
@@ -117,5 +125,8 @@ export async function GET(): Promise<NextResponse> {
       return true;
     });
 
-  return NextResponse.json<FollowingFeedResponse>({ performances });
+  return NextResponse.json<FollowingFeedResponse>({
+    performances,
+    hasFollowedArtists: true,
+  });
 }

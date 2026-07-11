@@ -94,18 +94,19 @@ describe("GET /api/follows/feed", () => {
     expect(res.status).toBe(401);
   });
 
-  it("팔로잉 아티스트 없음 → 200, performances []", async () => {
+  it("팔로잉 아티스트 없음 → 200, performances [], hasFollowedArtists: false", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user1" } });
     mockGetFollowedArtistIds.mockReturnValue([]);
     const res = await GET();
     expect(res.status).toBe(200);
     const body = (await res.json()) as FollowingFeedResponse;
     expect(body.performances).toEqual([]);
+    expect(body.hasFollowedArtists).toBe(false);
     // KOPIS 호출 없음
     expect(mockKopisGet).not.toHaveBeenCalled();
   });
 
-  it("팔로잉 있으나 performance_artists 없음 → 200, performances []", async () => {
+  it("팔로잉 있으나 performance_artists 없음 → 200, performances [], hasFollowedArtists: true", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user1" } });
     mockGetFollowedArtistIds.mockReturnValue([1, 2]);
     mockGetPerformancesByArtist.mockReturnValue([]);
@@ -113,6 +114,7 @@ describe("GET /api/follows/feed", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as FollowingFeedResponse;
     expect(body.performances).toEqual([]);
+    expect(body.hasFollowedArtists).toBe(true);
     expect(mockKopisGet).not.toHaveBeenCalled();
   });
 
