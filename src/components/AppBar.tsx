@@ -123,6 +123,14 @@ export default function AppBar({ showBack = false }: AppBarProps) {
                   >
                     팔로잉 목록
                   </Link>
+                  <Link
+                    href="/following-feed"
+                    role="menuitem"
+                    className={styles.dropdownItem}
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    팔로잉 공연
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"
